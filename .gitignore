@@ -1,0 +1,35 @@
+node_modules/
+server/.env
+server/data/*.json
+*.log
+.DS_Store
+
+# Old project repository
+UltraAI_V5/
+
+# Old project repository
+UltraAI_V5/
+
+# Secrets
+.env
+*.env
+server/.env
+
+# Runtime/user data
+server/data/*.json
+
+# Old nested project
+UltraAI_V5/
+
+# ALL environment files / backups
+.env*
+**/.env*
+**/*.env
+**/*.env.*
+server/.env*
+server/data/chat-images/
+server/data/uploads/
+server/data/files/
+backups/
+public_backup*/
+*.zip

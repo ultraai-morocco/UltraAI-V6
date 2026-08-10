@@ -1,0 +1,69 @@
+<div class="ai-page">
+
+    <div id="aiHeader"></div>
+
+    <main id="messages" class="messages">
+
+        <div class="ai-empty">
+            <div class="ai-empty-icon">🤖</div>
+            <h2>كيف يمكنني مساعدتك؟</h2>
+            <p>اسأل UltraAI عن أي شيء</p>
+        </div>
+
+    </main>
+
+
+    <!-- معاينة الصورة -->
+<div id="imagePreview" class="image-preview">
+    <div id="previewImageBox" class="preview-image-box"></div>
+
+    <button
+        type="button"
+        class="remove-image"
+        onclick="removeSelectedImage()"
+        aria-label="حذف الصورة"
+    >×</button>
+</div>
+
+<!-- شريط الكتابة -->
+    <div class="ultra-input">
+
+        <button
+            type="button"
+            class="image-button"
+            id="imageButton"
+            aria-label="إضافة صورة"
+            title="إضافة صورة"
+        >
+            📷
+        </button>
+
+
+        <input
+            id="imageInput"
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            style="display:none;"
+        >
+
+
+        <textarea
+            id="question"
+            placeholder="اكتب رسالتك..."
+            rows="1"
+            autocomplete="off"
+        ></textarea>
+
+
+        <button
+            type="button"
+            class="send-button"
+            aria-label="إرسال"
+            title="إرسال"
+        >
+            ↑
+        </button>
+
+    </div>
+
+</div>

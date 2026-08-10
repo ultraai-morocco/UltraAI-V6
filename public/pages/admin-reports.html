@@ -1,0 +1,34 @@
+<div class="admin-page">
+
+    <div class="admin-header">
+        <button class="admin-back" onclick="loadPage('admin')">
+            ← الإدارة
+        </button>
+
+        <div>
+            <h1>🚩 الإبلاغات</h1>
+            <p>جميع البلاغات المقدمة</p>
+        </div>
+    </div>
+
+    <section class="admin-section">
+
+        <div class="admin-section-title">
+            <h2>🚩 جميع الإبلاغات</h2>
+
+            <button
+                class="admin-refresh"
+                onclick="loadAdminReportsPage()">
+                🔄 تحديث
+            </button>
+        </div>
+
+        <div id="adminReportsList">
+            <div class="admin-loading">
+                جاري تحميل الإبلاغات...
+            </div>
+        </div>
+
+    </section>
+
+</div>

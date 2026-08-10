@@ -1,0 +1,63 @@
+<div class="internal-page">
+
+    <div id="filesHeader"></div>
+
+    <main class="files-page">
+
+        <section class="files-upload-card">
+
+            <div class="files-upload-icon">
+                📁
+            </div>
+
+            <h2>ملفاتك</h2>
+
+            <p>
+                ارفع الصور والمستندات والملفات التي تحتاجها.
+            </p>
+
+            <label class="files-upload-btn">
+
+                📤 اختيار ملف
+
+                <input
+                    id="fileInput"
+                    type="file"
+                    hidden
+                    onchange="uploadUltraFile(this)"
+                >
+
+            </label>
+
+            <div id="uploadStatus"></div>
+
+        </section>
+
+
+        <section class="files-list-section">
+
+            <div class="files-title">
+
+                <strong>ملفاتك المرفوعة</strong>
+
+                <button
+                    type="button"
+                    onclick="loadFiles()">
+                    🔄
+                </button>
+
+            </div>
+
+            <div id="filesList">
+
+                <div class="files-loading">
+                    جاري تحميل الملفات...
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+</div>

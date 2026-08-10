@@ -1,0 +1,319 @@
+<div id="adminPage" class="admin-page">
+
+    <div class="admin-header">
+
+        <button
+            class="admin-back"
+            onclick="loadPage('home')">
+            ← الرئيسية
+        </button>
+
+        <div>
+            <h1>👑 لوحة الإدارة</h1>
+            <p>إدارة ومراقبة UltraAI</p>
+        </div>
+
+    </div>
+
+
+    <div id="adminMessage" class="admin-message"></div>
+
+
+    <!-- =====================================
+         ADMIN DASHBOARD
+    ====================================== -->
+
+    <div class="admin-stats">
+
+        <!-- USERS -->
+
+        <button
+            type="button"
+            class="admin-card admin-card-clickable"
+            onclick="loadPage('admin-users')">
+
+            <span>👥</span>
+
+            <strong id="adminUsers">-</strong>
+
+            <small>
+                المستخدمون
+            </small>
+
+            <em>
+                عرض الحسابات →
+            </em>
+
+        </button>
+
+
+        <!-- REPORTS -->
+
+        <button
+            type="button"
+            class="admin-card admin-card-clickable"
+            onclick="loadPage('admin-reports')">
+
+            <span>🚩</span>
+
+            <strong id="adminReports">-</strong>
+
+            <small>
+                الإبلاغات
+            </small>
+
+            <em>
+                عرض الإبلاغات →
+            </em>
+
+        </button>
+
+
+        <!-- PENDING -->
+
+        <button
+            type="button"
+            class="admin-card admin-card-clickable"
+            onclick="loadPage('admin-pending')">
+
+            <span>⏳</span>
+
+            <strong id="adminPending">-</strong>
+
+            <small>
+                بلاغات معلقة
+            </small>
+
+            <em>
+                مراجعة البلاغات →
+            </em>
+
+        </button>
+
+
+        <!-- BANNED -->
+
+        <button
+            type="button"
+            class="admin-card admin-card-clickable admin-card-danger"
+            onclick="loadPage('admin-banned')">
+
+            <span>🚫</span>
+
+            <strong id="adminBanned">-</strong>
+
+            <small>
+                الحسابات المحظورة
+            </small>
+
+            <em>
+                إدارة المحظورين →
+            </em>
+
+        </button>
+
+    </div>
+
+
+    <!-- =====================================
+         QUICK ACTIONS
+    ====================================== -->
+
+    <section class="admin-section">
+
+        <div class="admin-section-title">
+
+            <div>
+                <h2>⚡ إدارة سريعة</h2>
+
+                <p>
+                    اختار القسم اللي بغيتي تدخل ليه
+                </p>
+            </div>
+
+        </div>
+
+
+        <div class="admin-quick-grid">
+
+            <button
+                type="button"
+                class="admin-quick-button"
+                onclick="loadPage('admin-users')">
+
+                <span>👥</span>
+
+                <div>
+                    <strong>
+                        المستخدمون
+                    </strong>
+
+                    <small>
+                        مشاهدة وإدارة الحسابات
+                    </small>
+                </div>
+
+                <b>←</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="admin-quick-button"
+                onclick="loadPage('admin-reports')">
+
+                <span>🚩</span>
+
+                <div>
+                    <strong>
+                        الإبلاغات
+                    </strong>
+
+                    <small>
+                        مشاهدة جميع البلاغات
+                    </small>
+                </div>
+
+                <b>←</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="admin-quick-button"
+                onclick="loadPage('admin-pending')">
+
+                <span>⏳</span>
+
+                <div>
+                    <strong>
+                        البلاغات المعلقة
+                    </strong>
+
+                    <small>
+                        البلاغات التي تحتاج مراجعة
+                    </small>
+                </div>
+
+                <b>←</b>
+
+            </button>
+
+
+            <button
+                type="button"
+                class="admin-quick-button admin-quick-danger"
+                onclick="loadPage('admin-banned')">
+
+                <span>🚫</span>
+
+                <div>
+                    <strong>
+                        الحسابات المحظورة
+                    </strong>
+
+                    <small>
+                        حظر وفك حظر الحسابات
+                    </small>
+                </div>
+
+                <b>←</b>
+
+            </button>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================
+         ADMIN BROADCAST
+    ====================================== -->
+
+    <section class="admin-section admin-broadcast-section">
+
+        <div class="admin-section-title">
+
+            <div>
+
+                <h2>📢 رسالة لجميع المستخدمين</h2>
+
+                <p>
+                    كتب رسالة بالعربية وغادي توصل لجميع المستخدمين مترجمة حسب اللغة ديالهم.
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <textarea
+            id="adminBroadcastMessage"
+            class="admin-broadcast-textarea"
+            maxlength="2000"
+            placeholder="كتب رسالة الإدارة هنا..."
+            rows="5"></textarea>
+
+
+        <div class="admin-broadcast-actions">
+
+            <button
+                type="button"
+                class="admin-broadcast-button"
+                onclick="sendAdminBroadcast()">
+
+                📢 إرسال للجميع
+
+            </button>
+
+        </div>
+
+
+        <div
+            id="adminBroadcastStatus"
+            class="admin-broadcast-status">
+        </div>
+
+    </section>
+
+
+    <!-- =====================================
+         ADMIN INFO
+    ====================================== -->
+
+    <section class="admin-section admin-info-section">
+
+        <div class="admin-section-title">
+
+            <h2>🛡️ حالة النظام</h2>
+
+        </div>
+
+        <div class="admin-info-grid">
+
+            <div>
+                <span>🔐</span>
+                <strong>صلاحيات الإدارة</strong>
+                <small>مفعلة</small>
+            </div>
+
+            <div>
+                <span>🚫</span>
+                <strong>نظام الحظر</strong>
+                <small>مفعل</small>
+            </div>
+
+            <div>
+                <span>🚩</span>
+                <strong>نظام الإبلاغات</strong>
+                <small>مفعل</small>
+            </div>
+
+        </div>
+
+    </section>
+
+</div>

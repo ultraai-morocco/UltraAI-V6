@@ -1,0 +1,154 @@
+<div class="internal-page">
+
+    <div id="settingsHeader"></div>
+
+    <main class="settings-content">
+
+
+        <!-- LANGUAGE -->
+
+        <div class="setting-item">
+
+            <div>
+
+                <strong data-i18n="language">اللغة</strong>
+
+                <span>
+                    <span data-i18n="chooseLanguage">اختر لغة تطبيق UltraAI</span>
+                </span>
+
+            </div>
+
+            <select
+                id="languageSelect"
+                onchange="changeLanguage()">
+
+                <option value="ar">
+                    🇲🇦 العربية
+                </option>
+
+                <option value="fr">
+                    🇫🇷 Français
+                </option>
+
+                <option value="en">
+                    🇬🇧 English
+                </option>
+
+            </select>
+
+        </div>
+
+
+        <!-- SAVE CONVERSATIONS -->
+
+        <div class="setting-item">
+
+            <div>
+
+                <strong>
+                    💾 حفظ المحادثات
+                </strong>
+
+                <span>
+                    <span data-i18n="saveChatsDesc">تحكم في حفظ محادثاتك في الذاكرة</span>
+                </span>
+
+            </div>
+
+            <label class="switch">
+
+                <input
+                    id="saveConversations"
+                    type="checkbox"
+                    onchange="changePrivacySetting()">
+
+                <span class="slider"></span>
+
+            </label>
+
+        </div>
+
+
+        <!-- NOTIFICATIONS -->
+
+        <div class="setting-item">
+
+            <div>
+
+                <strong>
+                    🔔 الإشعارات
+                </strong>
+
+                <span>
+                    <span data-i18n="notificationsDesc">تنبيهات UltraAI</span>
+                </span>
+
+            </div>
+
+            <span>
+                قريباً
+            </span>
+
+        </div>
+
+
+        <!-- PRIVACY -->
+
+        <div class="setting-item">
+
+            <div>
+
+                <strong>
+                    🔒 الخصوصية
+                </strong>
+
+                <span>
+                    <span data-i18n="privacyDesc">إدارة بيانات ومحادثات الحساب</span>
+                </span>
+
+            </div>
+
+            <span>
+                ✓
+            </span>
+
+        </div>
+
+
+        <!-- ACCOUNT DATA -->
+
+        <div class="privacy-section">
+
+            <h3>
+                🛡️ بيانات الحساب
+            </h3>
+
+            <p>
+                يمكنك حذف جميع المحادثات أو حذف الحساب نهائياً.
+            </p>
+
+
+            <button
+                class="privacy-danger-btn"
+                onclick="deleteAllConversations()">
+
+                <span data-i18n="deleteChats">🗑️ حذف جميع المحادثات</span>
+
+            </button>
+
+
+            <button
+                class="privacy-danger-btn"
+                onclick="deleteAccount()">
+
+                <span data-i18n="deleteAccount">⚠️ حذف الحساب نهائياً</span>
+
+            </button>
+
+        </div>
+
+
+    </main>
+
+</div>

@@ -1,0 +1,55 @@
+<div class="internal-page global-page">
+
+    <div id="globalHeader"></div>
+
+    <main class="global-content">
+
+        <div class="global-title">
+
+            <div class="global-icon">
+                🌍
+            </div>
+
+            <div>
+                <h2 data-i18n="global">الشات العالمي</h2>
+
+                <p>
+                    <span data-i18n="globalDesc">تحدث مع مستخدمي UltraAI</span>
+                </p>
+            </div>
+
+        </div>
+
+
+        <div
+            id="globalMessages"
+            class="global-messages">
+
+            <div class="global-loading">
+                ⏳ جاري تحميل الرسائل...
+            </div>
+
+        </div>
+
+
+        <div class="global-input-area">
+
+            <textarea
+                id="globalMessage"
+                rows="1"
+                placeholder="اكتب رسالة للجميع..." data-i18n-placeholder="globalWrite"
+                onkeydown="handleGlobalKey(event)"
+            ></textarea>
+
+            <button
+                onclick="sendGlobalMessage()">
+
+                ↑
+
+            </button>
+
+        </div>
+
+    </main>
+
+</div>

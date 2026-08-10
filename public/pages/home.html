@@ -1,0 +1,124 @@
+<div class="home-v6">
+
+    <header class="home-header">
+
+        <button class="home-menu" onclick="openPageMenu()">
+            ☰
+        </button>
+
+        <div class="home-user">
+
+            <div class="home-avatar">
+                👤
+            </div>
+
+            <div>
+                <strong>مرحباً 👋</strong>
+                <span>جاهز لمساعدتك</span>
+            </div>
+
+        </div>
+
+    </header>
+
+
+    <section class="home-hero">
+
+        <div class="hero-logo">
+            U
+        </div>
+
+        <h1>كيف يمكنني مساعدتك؟</h1>
+
+        <p>
+            تحدث مع UltraAI وابدأ محادثة جديدة
+        </p>
+
+        <button
+            class="new-chat-btn"
+            onclick="newAIConversation()">
+
+            ✨ محادثة جديدة
+
+        </button>
+
+    </section>
+
+
+    <section class="home-cards">
+
+        <div
+            class="home-card"
+            onclick="newAIConversation()">
+
+            <div class="home-card-icon">🤖</div>
+
+            <strong>AI</strong>
+
+            <span>محادثة مع UltraAI</span>
+
+        </div>
+
+
+        <div
+            class="home-card"
+            onclick="loadPage('memory')">
+
+            <div class="home-card-icon">🧠</div>
+
+            <strong>الذاكرة</strong>
+
+            <span>محادثاتك السابقة</span>
+
+        </div>
+
+
+        <div
+            class="home-card"
+            onclick="loadPage('profile')">
+
+            <div class="home-card-icon">👤</div>
+
+            <strong>الحساب</strong>
+
+            <span>معلومات حسابك</span>
+
+        </div>
+
+
+        <div
+            class="home-card"
+            onclick="loadPage('settings')">
+
+            <div class="home-card-icon">⚙️</div>
+
+            <strong>الإعدادات</strong>
+
+            <span>إعدادات UltraAI</span>
+
+        </div>
+
+    </section>
+
+
+    <section class="recent-section">
+
+        <div class="section-title">
+
+            <strong>آخر المحادثات</strong>
+
+            <button onclick="loadPage('memory')">
+                عرض الكل
+            </button>
+
+        </div>
+
+        <div id="recentConversations">
+
+            <span>جاري التحميل...</span>
+
+        </div>
+
+    </section>
+
+</div>

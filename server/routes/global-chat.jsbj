@@ -1,0 +1,82 @@
+const express = require("express");
+const fs = require("fs");
+const path = require("path");
+
+const router = express.Router();
+const auth = require("../auth");
+
+const FILE = path.join(__dirname, "..", "data", "global-chat.json");
+
+function loadMessages() {
+  try {
+    return JSON.parse(fs.readFileSync(FILE, "utf8"));
+  } catch {
+    return [];
+  }
+}
+
+function saveMessages(messages) {
+  fs.writeFileSync(FILE, JSON.stringify(messages, null, 2), "utf8");
+}
+
+// جلب آخر 100 رسالة
+router.get("/", (req, res) => {
+  const messages = loadMessages();
+  res.json({
+    success: true,
+    messages: messages.slice(-100)
+  });
+});
+
+// إرسال رسالة
+router.post("/", (req, res) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) {
+    return res.json({
+      success: false,
+      message: "يجب تسجيل الدخول"
+    });
+  }
+
+  const user = auth.verifyToken(token);
+
+  if (!user) {
+    return res.json({
+      success: false,
+      message: "رمز الدخول غير صالح"
+    });
+  }
+
+  const text = (req.body.message || "").trim();
+
+  if (!text) {
+    return res.json({
+      success: false,
+      message: "الرسالة فارغة"
+    });
+  }
+
+  const messages = loadMessages();
+
+  messages.push({
+    id: Date.now(),
+    userId: user.id,
+    username: user.username,
+    message: text,
+    createdAt: new Date().toISOString()
+  });
+
+  // الاحتفاظ بآخر 500 رسالة فقط
+  while (messages.length > 500) {
+    messages.shift();
+  }
+
+  saveMessages(messages);
+
+  res.json({
+    success: true
+  });
+});
+
+module.exports = router;

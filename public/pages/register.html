@@ -1,0 +1,90 @@
+<div class="auth-page">
+
+    <div class="auth-card">
+
+        <h2>📝 إنشاء حساب UltraAI</h2>
+
+        <input
+            type="text"
+            id="registerUsername"
+            placeholder="الاسم الكامل">
+
+        <input
+            type="email"
+            id="registerEmail"
+            placeholder="البريد الإلكتروني">
+
+        <div style="display:flex;gap:10px">
+
+            <select
+                id="registerCountry"
+                style="width:120px">
+
+                <option value="MA">🇲🇦 +212</option>
+                <option value="CA">🇨🇦 +1</option>
+                <option value="FR">🇫🇷 +33</option>
+                <option value="ES">🇪🇸 +34</option>
+                <option value="US">🇺🇸 +1</option>
+                <option value="GB">🇬🇧 +44</option>
+                <option value="BE">🇧🇪 +32</option>
+                <option value="DE">🇩🇪 +49</option>
+                <option value="IT">🇮🇹 +39</option>
+                <option value="NL">🇳🇱 +31</option>
+
+            </select>
+
+            <input
+                type="tel"
+                id="registerPhone"
+                placeholder="رقم الهاتف"
+                style="flex:1">
+
+        </div>
+
+        <small style="display:block;margin:8px 0 14px;opacity:.7">
+            📱 رقم الهاتف سيُستخدم للتحقق وحماية الحساب
+        </small>
+
+        <input
+            type="password"
+            id="registerPassword"
+            placeholder="كلمة المرور">
+
+        <div style="display:flex;gap:10px">
+
+            <input
+                type="text"
+                id="registerOTP"
+                placeholder="رمز التحقق من البريد"
+                style="flex:1">
+
+            <button
+                onclick="sendOTP()">
+                إرسال الرمز
+            </button>
+
+        </div>
+
+        <button
+            class="primary"
+            onclick="register()">
+            إنشاء الحساب
+        </button>
+
+        <p>
+
+            لديك حساب؟
+
+            <a
+                href="#"
+                onclick="loadPage('login')">
+
+                تسجيل الدخول
+
+            </a>
+
+        </p>
+
+    </div>
+
+</div>

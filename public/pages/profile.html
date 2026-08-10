@@ -1,0 +1,188 @@
+<div class="internal-page">
+
+    <div id="profileHeader"></div>
+
+    <main class="profile-content">
+
+        <div class="profile-card">
+
+            <div
+                id="profileAvatar"
+                class="profile-avatar-big"
+                onclick="chooseProfileImage()">
+                🌍
+            </div>
+
+            <input
+                id="profileImageInput"
+                type="file"
+                accept="image/*"
+                style="display:none"
+                onchange="uploadProfileImage(event)"
+            >
+
+            <button
+                class="change-avatar-btn"
+                onclick="chooseProfileImage()">
+                📷 <span data-i18n="changePhoto">تغيير الصورة</span>
+            </button>
+
+            <h2 id="profileName">
+                المستخدم
+            </h2>
+
+            <p id="profileEmail">
+                <span data-i18n="email">البريد الإلكتروني</span>
+            </p>
+
+
+            <div class="profile-info-row">
+
+                <span>👤</span>
+
+                <div>
+                    <small><span data-i18n="name">الاسم</span></small>
+                    <strong id="profileNameInfo">-</strong>
+                </div>
+
+            </div>
+
+
+            <div class="profile-info-row">
+
+                <span>📧</span>
+
+                <div>
+                    <small><span data-i18n="email">البريد الإلكتروني</span></small>
+                    <strong id="profileEmailInfo">-</strong>
+                </div>
+
+            </div>
+
+
+            <div class="profile-info-row">
+
+                <span>📱</span>
+
+                <div>
+                    <small><span data-i18n="phone">رقم الهاتف</span></small>
+                    <strong id="profilePhone">
+                        لم تتم إضافة <span data-i18n="phone">رقم الهاتف</span>
+                    </strong>
+                </div>
+
+            </div>
+
+
+            <div class="profile-info-row">
+
+                <span>📅</span>
+
+                <div>
+                    <small><span data-i18n="createdAt">تاريخ إنشاء الحساب</span></small>
+                    <strong id="profileCreatedAt">-</strong>
+                </div>
+
+            </div>
+
+
+            <div class="profile-actions">
+
+                <button onclick="openEditProfile()">
+                    ✏️ <span data-i18n="editAccount">تعديل الحساب</span>
+                </button>
+
+                <button onclick="openChangePassword()">
+                    🔐 <span data-i18n="changePassword">تغيير كلمة المرور</span>
+                </button>
+
+                <button onclick="loadPage('settings')">
+                    ⚙️ <span data-i18n="settings">الإعدادات</span>
+                </button>
+
+                <button
+                    class="logout-btn"
+                    onclick="logoutUltraAI()">
+                    🚪 <span data-i18n="logout">تسجيل الخروج</span>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- تعديل الحساب -->
+
+        <div
+            id="editProfileBox"
+            class="profile-edit-box"
+            style="display:none">
+
+            <h3>✏️ <span data-i18n="editAccount">تعديل الحساب</span></h3>
+
+            <input
+                id="editProfileName"
+                type="text"
+                placeholder="<span data-i18n="name">الاسم</span>">
+
+            <input
+                id="editProfilePhone"
+                type="tel"
+                placeholder="<span data-i18n="phone">رقم الهاتف</span>">
+
+            <div class="profile-edit-buttons">
+
+                <button onclick="saveProfileData()">
+                    💾 حفظ
+                </button>
+
+                <button onclick="closeEditProfile()">
+                    <span data-i18n="cancel">إلغاء</span>
+                </button>
+
+            </div>
+
+        </div>
+
+
+        <!-- تغيير كلمة المرور -->
+
+        <div
+            id="passwordBox"
+            class="profile-edit-box"
+            style="display:none">
+
+            <h3>🔐 <span data-i18n="changePassword">تغيير كلمة المرور</span></h3>
+
+            <input
+                id="currentPassword"
+                type="password"
+                placeholder="كلمة المرور الحالية">
+
+            <input
+                id="newPassword"
+                type="password"
+                placeholder="كلمة المرور الجديدة">
+
+            <input
+                id="confirmPassword"
+                type="password"
+                placeholder="تأكيد كلمة المرور الجديدة">
+
+            <div class="profile-edit-buttons">
+
+                <button onclick="saveNewPassword()">
+                    🔐 تغيير
+                </button>
+
+                <button onclick="closeChangePassword()">
+                    <span data-i18n="cancel">إلغاء</span>
+                </button>
+
+            </div>
+
+        </div>
+
+    </main>
+
+</div>
