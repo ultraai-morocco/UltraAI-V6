@@ -1,45 +1,104 @@
 const SibApiV3Sdk = require("sib-api-v3-sdk");
-require("dotenv").config({ path: "server/.env" });
+require("dotenv").config({ path: "./server/.env" });
 
 const client = SibApiV3Sdk.ApiClient.instance;
 
-client.authentications["api-key"].apiKey = process.env.BREVO_API_KEY;
+client.authentications["api-key"].apiKey =
+    process.env.BREVO_API_KEY;
 
 const api = new SibApiV3Sdk.TransactionalEmailsApi();
 
 async function sendOTP(email, code) {
 
-    const result = await api.sendTransacEmail({
+    if (!process.env.BREVO_API_KEY) {
+        throw new Error("BREVO_API_KEY missing");
+    }
 
-        sender: {
-            email: "naamaouiazzouz96@gmail.com",
-            name: "UltraAI V5"
-        },
+    const sendSmtpEmail = new SibApiV3Sdk.SendSmtpEmail();
 
-        to: [
-            {
-                email: email
-            }
-        ],
+    sendSmtpEmail.sender = {
+        email: "naamaouiazzouz96@gmail.com",
+        name: "UltraAI"
+    };
 
-        subject: "رمز التحقق - UltraAI V5",
+    sendSmtpEmail.to = [
+        {
+            email: String(email).trim().toLowerCase()
+        }
+    ];
 
-        htmlContent: `
-        <div style="font-family:Arial;padding:20px">
-            <h2>UltraAI V5</h2>
+    sendSmtpEmail.subject = "رمز التحقق - UltraAI";
+
+    sendSmtpEmail.htmlContent = `
+        <div style="
+            font-family:Arial,sans-serif;
+            max-width:600px;
+            margin:auto;
+            padding:30px;
+            text-align:center;
+        ">
+            <h2>UltraAI</h2>
 
             <p>رمز التحقق الخاص بك هو:</p>
 
-            <h1 style="letter-spacing:6px">${code}</h1>
+            <div style="
+                font-size:32px;
+                font-weight:bold;
+                letter-spacing:8px;
+                margin:25px 0;
+            ">
+                ${code}
+            </div>
 
-            <p>تنتهي صلاحية الرمز خلال 10 دقائق.</p>
+            <p>
+                تنتهي صلاحية الرمز خلال 10 دقائق.
+            </p>
         </div>
-        `
-    });
+    `;
 
-    console.log(result);
+    console.log("📧 BREVO SEND START:", sendSmtpEmail.to);
 
-    return result;
+    try {
+
+        const result =
+            await api.sendTransacEmail(sendSmtpEmail);
+
+        console.log(
+            "✅ BREVO SEND SUCCESS:",
+            result
+        );
+
+        return result;
+
+    } catch (error) {
+
+        console.error(
+            "❌ BREVO SEND ERROR:"
+        );
+
+        console.error(
+            "CODE:",
+            error.code
+        );
+
+        console.error(
+            "MESSAGE:",
+            error.message
+        );
+
+        if (error.response) {
+            console.error(
+                "RESPONSE:",
+                error.response.body ||
+                error.response.text ||
+                error.response
+            );
+        }
+
+        throw error;
+    }
 }
 
-module.exports = { sendOTP };
+module.exports = {
+    sendOTP
+};

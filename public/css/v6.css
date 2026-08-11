@@ -1,5 +1,5 @@
 /* =========================================
-   UltraAI V6
+   UltraAI
    Modern Mobile App UI
 ========================================= */
 
@@ -2270,7 +2270,7 @@ button{
 /* =====================================================
 
 /* =====================================================
-   ULTRAAI V6 — AI CHAT CLEAN
+   ULTRAAI — AI CHAT CLEAN
 ===================================================== */
 
 .ai-page{
@@ -2555,7 +2555,7 @@ button{
 
 
 /* =====================================================
-   ULTRAAI V6 — USER IMAGE SIZE FIX
+   ULTRAAI — USER IMAGE SIZE FIX
    لا تسمح للصورة بتخريب تخطيط المحادثة
 ===================================================== */
 
@@ -2595,7 +2595,7 @@ button{
 
 
 /* =========================================================
-   ULTRAAI V6 — NEW HOME + SIDEBAR ONLY
+   ULTRAAI — NEW HOME + SIDEBAR ONLY
    ========================================================= */
 
 
@@ -2988,7 +2988,7 @@ button{
 
 
 /* =====================================================
-   ULTRAAI V6 - FILES PAGE
+   ULTRAAI - FILES PAGE
 ===================================================== */
 
 .files-page {
@@ -3404,3 +3404,358 @@ button{
     }
 
 }
+
+
+/* =========================================
+   ULTRAAI STARTUP SPLASH
+   ========================================= */
+
+#ultraaiSplash{
+    position:fixed;
+    inset:0;
+    z-index:999999;
+    opacity:0;
+    visibility:hidden;
+    pointer-events:none;
+    transition:
+        opacity .45s ease,
+        visibility .45s ease;
+}
+
+#ultraaiSplash.show{
+    opacity:1;
+    visibility:visible;
+}
+
+#ultraaiSplash.hide{
+    opacity:0;
+}
+
+.ultraai-splash-bg{
+    position:absolute;
+    inset:0;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+
+    overflow:hidden;
+
+    background:
+        radial-gradient(
+            circle at 50% 45%,
+            #172b59 0%,
+            #0b1429 38%,
+            #050912 72%,
+            #020409 100%
+        );
+}
+
+
+/* LIGHT */
+
+.ultraai-glow{
+    position:absolute;
+
+    width:260px;
+    height:260px;
+
+    border-radius:50%;
+
+    filter:blur(70px);
+
+    opacity:.28;
+
+    animation:
+        ultraaiGlow 3s ease-in-out infinite alternate;
+}
+
+.glow-one{
+    background:#347ff1;
+    top:15%;
+    left:15%;
+}
+
+.glow-two{
+    background:#7457e8;
+    bottom:10%;
+    right:12%;
+
+    animation-delay:1s;
+}
+
+
+/* LOGO */
+
+.ultraai-logo-wrap{
+    position:relative;
+    z-index:2;
+
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+
+    animation:
+        ultraaiEnter .9s cubic-bezier(.2,.8,.2,1);
+}
+
+
+.ultraai-logo-ring{
+    width:92px;
+    height:92px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:30px;
+
+    background:
+        linear-gradient(
+            135deg,
+            #347ff1,
+            #7157e8
+        );
+
+    box-shadow:
+        0 0 0 1px rgba(255,255,255,.10),
+        0 20px 70px rgba(52,127,241,.38);
+
+    transform:rotate(-5deg);
+
+    animation:
+        ultraaiLogoFloat 2.2s ease-in-out infinite;
+}
+
+
+.ultraai-logo{
+    width:70px;
+    height:70px;
+
+    display:flex;
+    align-items:center;
+    justify-content:center;
+
+    border-radius:23px;
+
+    background:#07101f;
+
+    color:white;
+
+    font-size:43px;
+    font-weight:800;
+
+    font-family:
+        Arial,
+        sans-serif;
+
+    transform:rotate(5deg);
+
+    box-shadow:
+        inset 0 0 25px rgba(255,255,255,.04);
+}
+
+
+/* NAME */
+
+.ultraai-name{
+    margin-top:27px;
+
+    color:#fff;
+
+    font-size:34px;
+    font-weight:800;
+
+    letter-spacing:.5px;
+
+    text-shadow:
+        0 4px 30px rgba(52,127,241,.35);
+}
+
+
+.ultraai-line{
+    width:0;
+    height:2px;
+
+    margin-top:12px;
+
+    border-radius:20px;
+
+    background:
+        linear-gradient(
+            90deg,
+            transparent,
+            #4c8cff,
+            #8068ff,
+            transparent
+        );
+
+    animation:
+        ultraaiLine 1.2s .45s ease forwards;
+}
+
+
+.ultraai-tagline{
+    margin-top:12px;
+
+    color:rgba(255,255,255,.65);
+
+    font-size:14px;
+
+    opacity:0;
+
+    animation:
+        ultraaiTagline .8s .7s ease forwards;
+}
+
+
+/* LOADING DOTS */
+
+.ultraai-loading{
+    position:absolute;
+    bottom:55px;
+
+    display:flex;
+    gap:7px;
+}
+
+.ultraai-loading span{
+    width:6px;
+    height:6px;
+
+    border-radius:50%;
+
+    background:#fff;
+
+    opacity:.25;
+
+    animation:
+        ultraaiDots 1s infinite ease-in-out;
+}
+
+.ultraai-loading span:nth-child(2){
+    animation-delay:.15s;
+}
+
+.ultraai-loading span:nth-child(3){
+    animation-delay:.30s;
+}
+
+
+/* ANIMATIONS */
+
+@keyframes ultraaiEnter{
+
+    from{
+        opacity:0;
+        transform:
+            translateY(25px)
+            scale(.92);
+    }
+
+    to{
+        opacity:1;
+        transform:
+            translateY(0)
+            scale(1);
+    }
+
+}
+
+
+@keyframes ultraaiLogoFloat{
+
+    0%,100%{
+        transform:
+            rotate(-5deg)
+            translateY(0);
+    }
+
+    50%{
+        transform:
+            rotate(-2deg)
+            translateY(-5px);
+    }
+
+}
+
+
+@keyframes ultraaiLine{
+
+    to{
+        width:145px;
+    }
+
+}
+
+
+@keyframes ultraaiTagline{
+
+    to{
+        opacity:1;
+    }
+
+}
+
+
+@keyframes ultraaiDots{
+
+    0%,100%{
+        opacity:.2;
+        transform:translateY(0);
+    }
+
+    50%{
+        opacity:1;
+        transform:translateY(-4px);
+    }
+
+}
+
+
+@keyframes ultraaiGlow{
+
+    from{
+        transform:scale(.85);
+        opacity:.18;
+    }
+
+    to{
+        transform:scale(1.15);
+        opacity:.32;
+    }
+
+}
+
+
+@media(max-width:380px){
+
+    .ultraai-logo-ring{
+        width:82px;
+        height:82px;
+    }
+
+    .ultraai-logo{
+        width:62px;
+        height:62px;
+        font-size:38px;
+    }
+
+    .ultraai-name{
+        font-size:30px;
+    }
+
+}
+
+
+@media(prefers-reduced-motion:reduce){
+
+    #ultraaiSplash *,
+    #ultraaiSplash{
+        animation:none !important;
+        transition:none !important;
+    }
+
+}
+

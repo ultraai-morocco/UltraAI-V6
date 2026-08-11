@@ -177,6 +177,12 @@ function createSideMenu(){
                     <b>الذاكرة</b>
                 </button>
 
+                <button onclick="openFromMenu('admin-inbox')" class="admin-inbox-menu-button">
+                    <span class="admin-inbox-menu-icon">📩</span>
+                    <b>رسائل الإدارة</b>
+                    <span id="adminInboxBadge" class="admin-inbox-badge"></span>
+                </button>
+
                 <button onclick="openFromMenu('chat')">
                     <span>💬</span>
                     <b>المحادثات</b>

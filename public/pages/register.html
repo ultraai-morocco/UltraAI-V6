@@ -50,20 +50,21 @@
             id="registerPassword"
             placeholder="كلمة المرور">
 
-        <div style="display:flex;gap:10px">
+        <div class="otp-row">
+    <input
+        type="text"
+        id="registerOTP"
+        placeholder="رمز التحقق من البريد"
+        inputmode="numeric"
+        autocomplete="one-time-code">
 
-            <input
-                type="text"
-                id="registerOTP"
-                placeholder="رمز التحقق من البريد"
-                style="flex:1">
-
-            <button
-                onclick="sendOTP()">
-                إرسال الرمز
-            </button>
-
-        </div>
+    <button
+        type="button"
+        class="otp-button"
+        onclick="sendOTP()">
+        إرسال الرمز
+    </button>
+</div>
 
         <button
             class="primary"

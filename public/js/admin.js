@@ -1,5 +1,5 @@
 /* =========================================
-   UltraAI V6 - ADMIN
+   UltraAI - ADMIN
 ========================================= */
 
 function getAdminTokenPayload() {

@@ -33,3 +33,6 @@ server/data/files/
 backups/
 public_backup*/
 *.zip
+
+# Backup files
+*.BACKUP-*

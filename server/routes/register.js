@@ -10,17 +10,21 @@ const { codes } = require("./send-otp");
 /*
    تحديد الدولة من طلب المستخدم
 */
-function detectCountry(req) {
+function detectCountry(phone) {
 
-    const forwarded =
-        req.headers["x-country"] ||
-        req.headers["cf-ipcountry"];
+    try {
+        const parsed = parsePhoneNumberFromString(String(phone).trim());
 
-    if (forwarded && forwarded !== "XX") {
-        return String(forwarded).toUpperCase();
+        if (parsed && parsed.country) {
+            return parsed.country;
+        }
+
+        return "MA";
+
+    } catch (error) {
+        console.error("Country detection error:", error);
+        return "MA";
     }
-
-    return "MA";
 }
 
 

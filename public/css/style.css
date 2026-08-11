@@ -345,7 +345,7 @@ font-weight:bold;
 
 
 /* =====================================================
-   UltraAI V6 - Unified Header
+   UltraAI - Unified Header
    ===================================================== */
 
 .v6-header {
@@ -1140,7 +1140,7 @@ body.ultra-light .settings-section {
 
 
 /* =========================================
-   ULTRAAI V6 - PROFILE
+   ULTRAAI - PROFILE
 ========================================= */
 
 .profile-content {
@@ -1387,7 +1387,7 @@ body.ultra-light .settings-section {
 
 
 /* =========================================
-   ULTRAAI V6 - PROFILE EDIT
+   ULTRAAI - PROFILE EDIT
 ========================================= */
 
 .profile-edit-overlay {
@@ -1608,7 +1608,7 @@ body.ultra-light .settings-section {
 
 
 /* =========================================
-   ULTRAAI V6 - GLOBAL CHAT
+   ULTRAAI - GLOBAL CHAT
 ========================================= */
 
 .global-page {
@@ -2204,7 +2204,7 @@ body.ultra-light .settings-section {
 
 
 /* =========================================
-   ULTRAAI V6 ADMIN
+   ULTRAAI ADMIN
 ========================================= */
 
 .admin-page {
@@ -2773,7 +2773,7 @@ body.ultra-light .settings-section {
 
 
 /* =====================================================
-   ULTRAAI V6 — HOME + SIDEBAR CLEAN DESIGN
+   ULTRAAI — HOME + SIDEBAR CLEAN DESIGN
    فقط الصفحة الرئيسية والقائمة الجانبية
 ===================================================== */
 
@@ -3210,5 +3210,248 @@ body.ultra-light .settings-section {
         padding: 12px;
     }
 
+}
+
+
+/* ===== REGISTER OTP FIX ===== */
+
+.otp-row {
+    width: 100%;
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.otp-row #registerOTP {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+    height: 56px !important;
+    margin: 10px 0 !important;
+    box-sizing: border-box !important;
+    text-align: center !important;
+    font-size: 18px !important;
+}
+
+.otp-row .otp-button {
+    flex: 0 0 115px !important;
+    width: 115px !important;
+    height: 56px !important;
+    margin: 10px 0 !important;
+    padding: 0 8px !important;
+    box-sizing: border-box !important;
+    white-space: nowrap !important;
+}
+
+@media (max-width: 420px) {
+    .otp-row {
+        gap: 8px;
+    }
+
+    .otp-row .otp-button {
+        flex: 0 0 105px !important;
+        width: 105px !important;
+        font-size: 14px !important;
+    }
+}
+
+
+/* =========================================
+   ADMIN INBOX
+========================================= */
+
+.admin-inbox-page {
+    min-height: 100vh;
+}
+
+.admin-inbox-content {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.admin-inbox-status {
+    text-align: center;
+    margin-bottom: 16px;
+    font-size: 14px;
+    opacity: .8;
+}
+
+.admin-inbox-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.admin-inbox-card {
+    position: relative;
+    padding: 16px;
+    border-radius: 18px;
+    cursor: pointer;
+    transition: transform .15s ease;
+}
+
+.admin-inbox-card:active {
+    transform: scale(.98);
+}
+
+.admin-inbox-card.is-unread {
+    border: 1px solid rgba(255, 80, 80, .35);
+}
+
+.admin-inbox-card.is-read {
+    opacity: .78;
+}
+
+.admin-inbox-card-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.admin-inbox-avatar {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255, 255, 255, .08);
+    font-size: 21px;
+}
+
+.admin-inbox-meta {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    gap: 3px;
+}
+
+.admin-inbox-meta span {
+    font-size: 12px;
+    opacity: .6;
+}
+
+.admin-inbox-new {
+    font-size: 11px;
+    padding: 4px 8px;
+    border-radius: 10px;
+    background: rgba(255, 70, 70, .16);
+}
+
+.admin-inbox-read {
+    font-size: 18px;
+    opacity: .7;
+}
+
+.admin-inbox-card-title {
+    margin-top: 13px;
+    font-weight: 700;
+}
+
+.admin-inbox-preview {
+    margin: 8px 0 0;
+    line-height: 1.7;
+    opacity: .8;
+    white-space: pre-wrap;
+}
+
+.admin-inbox-empty {
+    text-align: center;
+    padding: 60px 20px;
+    opacity: .7;
+}
+
+.admin-inbox-empty > div {
+    font-size: 45px;
+    margin-bottom: 12px;
+}
+
+.admin-inbox-badge {
+    display: none;
+    min-width: 19px;
+    height: 19px;
+    padding: 0 5px;
+    margin-right: auto;
+    border-radius: 10px;
+    font-size: 11px;
+    align-items: center;
+    justify-content: center;
+    background: #e53935;
+    color: white;
+}
+
+.admin-message-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+}
+
+.admin-message-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,.65);
+    backdrop-filter: blur(4px);
+}
+
+.admin-message-dialog {
+    position: relative;
+    z-index: 2;
+    width: min(92%, 520px);
+    max-height: 80vh;
+    overflow-y: auto;
+    margin: 12vh auto 0;
+    padding: 25px;
+    border-radius: 24px;
+    background: var(--card-bg, #151515);
+    box-shadow: 0 20px 60px rgba(0,0,0,.4);
+}
+
+.admin-message-close {
+    position: absolute;
+    top: 10px;
+    left: 12px;
+    width: 38px;
+    height: 38px;
+    border: 0;
+    border-radius: 50%;
+    background: rgba(255,255,255,.08);
+    color: inherit;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.admin-message-icon {
+    text-align: center;
+    font-size: 42px;
+}
+
+.admin-message-dialog h2 {
+    text-align: center;
+    margin: 10px 0 5px;
+}
+
+.admin-message-date {
+    text-align: center;
+    font-size: 12px;
+    opacity: .55;
+    margin-bottom: 22px;
+}
+
+.admin-message-body {
+    line-height: 1.9;
+    white-space: pre-wrap;
+    word-break: break-word;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255,255,255,.05);
+}
+
+.admin-message-status {
+    text-align: center;
+    margin-top: 16px;
+    font-size: 13px;
+    opacity: .7;
 }
 

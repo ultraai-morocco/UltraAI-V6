@@ -177,6 +177,11 @@ async function loadPage(page) {
         }
 
 
+        /* FORGOT PASSWORD */
+        if (page === "forgot-password") {
+            // الصفحة تعتمد على auth.js فقط
+        }
+
         /* HOME */
 
         if (
@@ -199,6 +204,20 @@ async function loadPage(page) {
 
         }
 
+
+        /* ADMIN INBOX */
+        if (page === "admin-inbox") {
+
+            makeHeader(
+                "adminInboxHeader",
+                "رسائل الإدارة",
+                "رسائل خاصة من UltraAI"
+            );
+
+            if (typeof loadAdminInbox === "function") {
+                loadAdminInbox();
+            }
+        }
 
         /* ADMIN USERS */
 
