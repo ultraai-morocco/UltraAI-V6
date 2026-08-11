@@ -8,11 +8,12 @@ const auth=require("../auth");
 
 router.post("/",(req,res)=>{
 
-const {email,password}=req.body;
+const emailInput=String(req.body.email || "").trim().toLowerCase();
+const {password}=req.body;
 
 const users=db.loadUsers();
 
-const user=users.find(u=>u.email===email);
+const user=users.find(u=>String(u.email || "").trim().toLowerCase()===emailInput);
 
 if(!user){
 
