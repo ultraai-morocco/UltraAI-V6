@@ -5,7 +5,7 @@ const db = require("../database");
 const auth = require("../auth");
 const { parsePhoneNumberFromString } = require("libphonenumber-js");
 
-const { codes } = require("./send-otp");
+const { getOTP, deleteOTP } = require("./send-otp");
 
 /*
    تحديد الدولة من طلب المستخدم
@@ -28,7 +28,7 @@ function detectCountry(phone) {
 }
 
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
 
     const {
         username,
@@ -85,7 +85,7 @@ router.post("/", (req, res) => {
     }
 
 
-    const saved = codes[cleanEmail];
+    const saved = await getOTP(cleanEmail);
 
 
     if (!saved) {
@@ -100,7 +100,7 @@ router.post("/", (req, res) => {
 
     if (Date.now() > saved.expires) {
 
-        delete codes[cleanEmail];
+        await deleteOTP(cleanEmail);
 
         return res.json({
             success: false,
@@ -196,7 +196,7 @@ router.post("/", (req, res) => {
 
     db.saveUsers(users);
 
-    delete codes[cleanEmail];
+    await deleteOTP(cleanEmail);
 
 
     res.json({
