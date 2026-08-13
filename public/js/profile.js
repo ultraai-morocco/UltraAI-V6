@@ -42,6 +42,34 @@ async function loadProfile() {
         }
 
         const user = data.user;
+    
+    const accountStatusText =
+        document.getElementById("accountStatusText");
+
+    const emailStatusText =
+        document.getElementById("emailStatusText");
+
+    const phoneStatusText =
+        document.getElementById("phoneStatusText");
+
+    if (accountStatusText) {
+        accountStatusText.textContent = "الحساب مفعل";
+    }
+
+    if (emailStatusText) {
+        emailStatusText.textContent =
+            user.email
+                ? "البريد الإلكتروني مضاف"
+                : "لم تتم إضافة البريد الإلكتروني";
+    }
+
+    if (phoneStatusText) {
+        phoneStatusText.textContent =
+            user.phone
+                ? "رقم الهاتف مضاف"
+                : "لم تتم إضافة رقم الهاتف";
+    }
+
 
         nameElement.textContent =
             user.username || "المستخدم";
