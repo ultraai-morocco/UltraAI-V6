@@ -148,6 +148,11 @@ function renderGlobalMessages(messages) {
         document.getElementById("globalMessages");
 
     if (!box) return;
+    
+    // نحافظو على مكان المستخدم أثناء التحديث التلقائي
+    const wasNearBottom =
+        box.scrollHeight - box.scrollTop - box.clientHeight < 120;
+
 
     if (!messages.length) {
 
@@ -235,8 +240,9 @@ function renderGlobalMessages(messages) {
 
         }).join("");
 
-    box.scrollTop =
-        box.scrollHeight;
+    if (wasNearBottom) {
+        box.scrollTop = box.scrollHeight;
+    }
 }
 
 
