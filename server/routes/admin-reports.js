@@ -331,6 +331,12 @@ router.get("/users", adminOnly, (req, res) => {
                 ) || "[]"
             );
 
+        console.log("🟣 ADMIN USERS FILE COUNT:", users.length);
+        console.log(
+            "🟣 ADMIN USER IDS:",
+            users.map(u => String(u.id))
+        );
+
         const safeUsers =
             users.map(user => ({
                 id: user.id,
