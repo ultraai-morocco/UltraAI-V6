@@ -349,28 +349,9 @@ router.get("/users", adminOnly, async (req, res) => {
  * تنبيه مستخدم
  * POST /admin-reports/users/:id/warn
  */
-router.post("/users/:id/warn", adminOnly, (req, res) => {
-
+router.post("/users/:id/warn", adminOnly, async (req, res) => {
     try {
-
-        const usersFile =
-            path.join(
-                __dirname,
-                "..",
-                "data",
-                "users.json"
-            );
-
-        const users =
-            JSON.parse(
-                fs.readFileSync(
-                    usersFile,
-                    "utf8"
-                ) || "[]"
-            );
-
-        const targetId =
-            String(req.params.id);
+        const targetId = String(req.params.id);
 
         if (
             targetId ===
@@ -382,11 +363,7 @@ router.post("/users/:id/warn", adminOnly, (req, res) => {
             });
         }
 
-        const user =
-            users.find(
-                u =>
-                    String(u.id) === targetId
-            );
+        const user = await kvUsers.findUserById(targetId);
 
         if (!user) {
             return res.status(404).json({
@@ -395,48 +372,28 @@ router.post("/users/:id/warn", adminOnly, (req, res) => {
             });
         }
 
-        const warningMessage =
-            String(
-                req.body.message ||
-                "⚠️ تنبيه من إدارة UltraAI: المرجو احترام قوانين التطبيق."
-            ).trim();
+        const warningMessage = String(
+            req.body.message ||
+            "⚠️ تنبيه من إدارة UltraAI: المرجو احترام قوانين التطبيق."
+        ).trim();
 
-        if (!user.notifications) {
+        if (!Array.isArray(user.notifications)) {
             user.notifications = [];
         }
 
         user.notifications.push({
-
-            id:
-                Date.now().toString(),
-
-            type:
-                "admin-warning",
-
-            title:
-                "⚠️ تنبيه من الإدارة",
-
-            message:
-                warningMessage,
-
-            createdAt:
-                new Date().toISOString(),
-
-            read:
-                false
+            id: Date.now().toString(),
+            type: "admin-warning",
+            title: "⚠️ تنبيه من الإدارة",
+            message: warningMessage,
+            createdAt: new Date().toISOString(),
+            read: false
         });
 
-        fs.writeFileSync(
-            usersFile,
-            JSON.stringify(
-                users,
-                null,
-                2
-            )
-        );
+        await kvUsers.updateUser(user);
 
         console.log(
-            "⚠️ ADMIN WARNING:",
+            "⚠️ ADMIN WARNING IN KV:",
             user.id,
             user.username
         );
@@ -447,9 +404,8 @@ router.post("/users/:id/warn", adminOnly, (req, res) => {
         });
 
     } catch (error) {
-
         console.error(
-            "ADMIN WARNING ERROR:",
+            "ADMIN WARNING KV ERROR:",
             error
         );
 
@@ -557,6 +513,92 @@ router.post("/users/:id/unban", adminOnly, async (req, res) => {
         return res.status(500).json({
             success: false,
             message: "تعذر فك الحظر."
+        });
+    }
+});
+
+
+/*
+ * إحصائيات مستخدم
+ * GET /admin-reports/users/:id/stats
+ */
+router.get("/users/:id/stats", adminOnly, async (req, res) => {
+    try {
+        const targetId = String(req.params.id);
+
+        const user = await kvUsers.findUserById(targetId);
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "الحساب غير موجود."
+            });
+        }
+
+        let conversationsCount = 0;
+
+        const conversationsFile = path.join(
+            __dirname,
+            "..",
+            "data",
+            "conversations.json"
+        );
+
+        if (fs.existsSync(conversationsFile)) {
+            try {
+                const raw = fs.readFileSync(
+                    conversationsFile,
+                    "utf8"
+                ) || "[]";
+
+                const conversations = JSON.parse(raw);
+
+                if (Array.isArray(conversations)) {
+                    conversationsCount = conversations.filter(item => {
+                        if (!item || typeof item !== "object") {
+                            return false;
+                        }
+
+                        const ownerId =
+                            item.userId ??
+                            item.ownerId ??
+                            item.user_id;
+
+                        return String(ownerId) === targetId;
+                    }).length;
+                }
+            } catch (error) {
+                console.error(
+                    "ADMIN USER CONVERSATIONS ERROR:",
+                    error
+                );
+            }
+        }
+
+        const notifications = Array.isArray(user.notifications)
+            ? user.notifications
+            : [];
+
+        return res.json({
+            success: true,
+            stats: {
+                conversations: conversationsCount,
+                notifications: notifications.length,
+                unreadNotifications: notifications.filter(
+                    n => n && n.read !== true
+                ).length
+            }
+        });
+
+    } catch (error) {
+        console.error(
+            "ADMIN USER STATS ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "تعذر تحميل إحصائيات المستخدم."
         });
     }
 });

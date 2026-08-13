@@ -522,6 +522,30 @@ function openAdminUserDetails(userId) {
         ? "🔴 محظور"
         : "🟢 نشط";
 
+    const notificationsCount =
+        Array.isArray(user.notifications)
+            ? user.notifications.length
+            : 0;
+
+    const unreadNotificationsCount =
+        Array.isArray(user.notifications)
+            ? user.notifications.filter(
+                n => n && n.read !== true
+            ).length
+            : 0;
+
+    const lastActivity =
+        user.lastActivityAt ||
+        user.updatedAt ||
+        user.lastLoginAt ||
+        null;
+
+    const lastActivityText =
+        lastActivity
+            ? new Date(lastActivity).toLocaleString("ar-MA")
+            : "غير متوفر";
+
+
     const modal = document.createElement("div");
     modal.id = "adminUserDetailsModal";
     modal.className = "admin-user-details-modal";
@@ -567,6 +591,21 @@ function openAdminUserDetails(userId) {
                 <strong>${status}</strong>
             </div>
 
+            <div class="admin-user-detail-row">
+                <span>🔔 التنبيهات</span>
+                <strong>${notificationsCount}</strong>
+            </div>
+
+            <div class="admin-user-detail-row">
+                <span>🔴 غير المقروءة</span>
+                <strong>${unreadNotificationsCount}</strong>
+            </div>
+
+            <div class="admin-user-detail-row">
+                <span>🕐 آخر نشاط</span>
+                <strong>${escapeAdminHTML(lastActivityText)}</strong>
+            </div>
+
             <div class="admin-user-details-actions">
                 <button
                     type="button"
@@ -578,6 +617,84 @@ function openAdminUserDetails(userId) {
     `;
 
     document.body.appendChild(modal);
+
+    loadAdminUserStats(userId);
+
+
+}
+
+
+async function loadAdminUserStats(userId) {
+    const conversationsEl =
+        document.getElementById(
+            "adminUserConversationsCount"
+        );
+
+    if (conversationsEl) {
+        conversationsEl.textContent = "جاري...";
+    }
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) {
+        if (conversationsEl) conversationsEl.textContent = "-";
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `/admin-reports/users/${encodeURIComponent(userId)}/stats`,
+            {
+                headers: {
+                    "Authorization":
+                        "Bearer " + token
+                }
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+            if (conversationsEl) {
+                conversationsEl.textContent = "-";
+            }
+
+            console.error(
+                "Admin user stats error:",
+                data.message
+            );
+
+            return;
+        }
+
+        const stats =
+            data.stats || {};
+
+        if (conversationsEl) {
+            conversationsEl.textContent =
+                String(stats.conversations ?? 0);
+        }
+
+    } catch (error) {
+        if (conversationsEl) {
+            conversationsEl.textContent = "-";
+        }
+
+        if (notificationsEl) {
+            notificationsEl.textContent = "-";
+        }
+
+        if (unreadNotificationsEl) {
+            unreadNotificationsEl.textContent = "-";
+        }
+
+        console.error(
+            "Admin user stats request error:",
+            error
+        );
+    }
 }
 
 function closeAdminUserDetails() {
