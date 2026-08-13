@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const db = require("../database");
+const kvUsers = require("../kv-users");
 const auth = require("../auth");
 const { parsePhoneNumberFromString } = require("libphonenumber-js");
 
@@ -120,14 +121,10 @@ router.post("/", async (req, res) => {
     }
 
 
-    const users = db.loadUsers();
+    const existingUser =
+        await kvUsers.findUserByEmail(cleanEmail);
 
-
-    if (
-        users.find(
-            u => String(u.email).toLowerCase() === cleanEmail
-        )
-    ) {
+    if (existingUser) {
 
         return res.json({
             success: false,
@@ -136,6 +133,7 @@ router.post("/", async (req, res) => {
 
     }
 
+    const users = db.loadUsers();
 
     if (
         users.find(
@@ -192,23 +190,12 @@ router.post("/", async (req, res) => {
     };
 
 
-    users.push(user);
+    await kvUsers.saveUser(user);
 
-    console.log("🟢 REGISTER BEFORE SAVE:", {
-        count: users.length,
+    console.log("🟢 REGISTER SAVED:", {
         userId: user.id,
-        username: user.username
-    });
-
-    db.saveUsers(users);
-
-    const savedUsers = db.loadUsers();
-
-    console.log("🟢 REGISTER AFTER SAVE:", {
-        count: savedUsers.length,
-        userIdFound: savedUsers.some(
-            u => String(u.id) === String(user.id)
-        )
+        username: user.username,
+        email: user.email
     });
 
     await deleteOTP(cleanEmail);

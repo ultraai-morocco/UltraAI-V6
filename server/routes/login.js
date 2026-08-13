@@ -3,17 +3,16 @@ const express=require("express");
 const router=express.Router();
 
 const db=require("../database");
+const kvUsers=require("../kv-users");
 
 const auth=require("../auth");
 
-router.post("/",(req,res)=>{
+router.post("/",async (req,res)=>{
 
 const emailInput=String(req.body.email || "").trim().toLowerCase();
 const {password}=req.body;
 
-const users=db.loadUsers();
-
-const user=users.find(u=>String(u.email || "").trim().toLowerCase()===emailInput);
+const user=await kvUsers.findUserByEmail(emailInput);
 
 if(!user){
 
