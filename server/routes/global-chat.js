@@ -162,13 +162,16 @@ router.get("/", (req, res) => {
 
 
     const messages =
-        load().sort(
-            (a, b) =>
-                a.id - b.id
-        );
+        load()
+            .filter(message =>
+                !message.isAdminBroadcast
+            )
+            .sort(
+                (a, b) =>
+                    a.id - b.id
+            );
 
-
-    const result =
+        const result =
         messages.map(message => {
 
             const user =

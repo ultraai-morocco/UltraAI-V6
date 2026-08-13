@@ -34,6 +34,35 @@ function getAdminInboxText(message) {
     return message.message || "";
 }
 
+
+function updateAdminInboxBadge(count) {
+
+    const badge =
+        document.getElementById("adminInboxBadge");
+
+    if (!badge) return;
+
+    const unread =
+        Number(count) || 0;
+
+    if (unread > 0) {
+
+        badge.textContent =
+            unread > 99
+                ? "99+"
+                : String(unread);
+
+        badge.style.display = "inline-flex";
+
+    } else {
+
+        badge.textContent = "";
+
+        badge.style.display = "none";
+    }
+}
+
+
 async function loadAdminInbox() {
 
     const list =
@@ -82,6 +111,10 @@ async function loadAdminInbox() {
 
         adminInboxMessages =
             data.messages || [];
+
+        updateAdminInboxBadge(
+            data.unreadCount
+        );
 
         renderAdminInbox();
 
@@ -355,3 +388,96 @@ window.closeAdminMessageModal =
 
 window.getAdminInboxUnreadCount =
     getAdminInboxUnreadCount;
+
+
+/* =========================================
+   إشعار رسائل الإدارة تلقائياً
+========================================= */
+
+let adminInboxBadgeTimer = null;
+
+async function checkAdminInboxBadge() {
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) {
+
+        updateAdminInboxBadge(0);
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/admin-inbox",
+                {
+                    headers: {
+                        Authorization:
+                            "Bearer " + token
+                    }
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            response.ok &&
+            data.success
+        ) {
+
+            updateAdminInboxBadge(
+                data.unreadCount
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Admin inbox badge error:",
+            error
+        );
+
+    }
+}
+
+
+function startAdminInboxBadge() {
+
+    if (adminInboxBadgeTimer) {
+
+        clearInterval(
+            adminInboxBadgeTimer
+        );
+
+    }
+
+    checkAdminInboxBadge();
+
+    adminInboxBadgeTimer =
+        setInterval(
+            checkAdminInboxBadge,
+            10000
+        );
+}
+
+
+if (
+    document.readyState ===
+    "loading"
+) {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        startAdminInboxBadge
+    );
+
+} else {
+
+    startAdminInboxBadge();
+
+}
