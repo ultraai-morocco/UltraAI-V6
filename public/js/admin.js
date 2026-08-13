@@ -345,6 +345,10 @@ async function loadAdminUsers() {
                 ? data.users
                 : [];
 
+    adminUsersCache = users;
+
+    setupAdminUserSearch();
+
         if (count)
             count.textContent = users.length;
 
@@ -359,10 +363,7 @@ async function loadAdminUsers() {
             return;
         }
 
-        list.innerHTML =
-            users
-                .map(createUserCard)
-                .join("");
+        filterAdminUsers();
 
     } catch (error) {
 
@@ -380,9 +381,212 @@ async function loadAdminUsers() {
 }
 
 
+
+/* =========================================
+   USER SEARCH + FILTER
+========================================= */
+
+let adminUsersCache = [];
+
+function setupAdminUserSearch() {
+    const list = document.getElementById("adminUsersList");
+    if (!list || document.getElementById("adminUsersSearchBox")) return;
+
+    const box = document.createElement("div");
+
+    box.id = "adminUsersSearchBox";
+
+    box.innerHTML = `
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin:0 0 15px;">
+            <input
+                id="adminUserSearch"
+                type="search"
+                placeholder="🔎 بحث بالاسم أو الإيميل أو ID..."
+                oninput="filterAdminUsers()"
+                style="flex:1;min-width:220px;padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;outline:none;"
+            >
+
+            <select
+                id="adminUserStatusFilter"
+                onchange="filterAdminUsers()"
+                style="padding:12px 14px;border-radius:12px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);color:inherit;outline:none;"
+            >
+                <option value="all">👥 الكل</option>
+                <option value="active">🟢 نشط</option>
+                <option value="banned">🔴 محظور</option>
+            </select>
+
+            <button
+                type="button"
+                onclick="clearAdminUserSearch()"
+                style="padding:12px 16px;border:0;border-radius:12px;cursor:pointer;"
+            >
+                🔄 مسح
+            </button>
+        </div>
+
+        <div id="adminUserSearchCount"
+             style="margin-bottom:12px;opacity:.75;font-size:13px;">
+        </div>
+    `;
+
+    list.parentNode.insertBefore(box, list);
+}
+
+function filterAdminUsers() {
+    const searchInput = document.getElementById("adminUserSearch");
+    const statusFilter = document.getElementById("adminUserStatusFilter");
+    const count = document.getElementById("adminUserSearchCount");
+    const list = document.getElementById("adminUsersList");
+
+    if (!list) return;
+
+    const query = String(searchInput?.value || "").trim().toLowerCase();
+    const status = statusFilter?.value || "all";
+
+    const filtered = adminUsersCache.filter(user => {
+        const username = String(user.username || "").toLowerCase();
+        const email = String(user.email || "").toLowerCase();
+        const id = String(user.id || "").toLowerCase();
+
+        const matchesSearch =
+            !query ||
+            username.includes(query) ||
+            email.includes(query) ||
+            id.includes(query);
+
+        const matchesStatus =
+            status === "all" ||
+            (status === "banned" && user.banned === true) ||
+            (status === "active" && user.banned !== true);
+
+        return matchesSearch && matchesStatus;
+    });
+
+    if (count) {
+        count.textContent =
+            `عرض ${filtered.length} من ${adminUsersCache.length} حساب`;
+    }
+
+    if (!filtered.length) {
+        list.innerHTML = `
+            <div class="admin-empty">
+                <div>🔎</div>
+                <strong>ما لقيّنا حتى حساب</strong>
+                <p>جرب اسم أو إيميل أو ID آخر.</p>
+            </div>
+        `;
+        return;
+    }
+
+    list.innerHTML = filtered.map(createUserCard).join("");
+}
+
+function clearAdminUserSearch() {
+    const searchInput = document.getElementById("adminUserSearch");
+    const statusFilter = document.getElementById("adminUserStatusFilter");
+
+    if (searchInput) searchInput.value = "";
+    if (statusFilter) statusFilter.value = "all";
+
+    filterAdminUsers();
+}
+
 /* =========================================
    USER CARD
 ========================================= */
+
+function openAdminUserDetails(userId) {
+    const user = adminUsersCache.find(
+        u => String(u.id) === String(userId)
+    );
+
+    if (!user) {
+        alert("الحساب غير موجود.");
+        return;
+    }
+
+    const existing = document.getElementById("adminUserDetailsModal");
+    if (existing) existing.remove();
+
+    const username = escapeAdminHTML(user.username || "-");
+    const email = escapeAdminHTML(user.email || "-");
+    const phone = escapeAdminHTML(user.phone || "-");
+    const id = escapeAdminHTML(String(user.id || "-"));
+
+    const created = user.createdAt
+        ? new Date(user.createdAt).toLocaleString("ar-MA")
+        : "-";
+
+    const status = user.banned === true
+        ? "🔴 محظور"
+        : "🟢 نشط";
+
+    const modal = document.createElement("div");
+    modal.id = "adminUserDetailsModal";
+    modal.className = "admin-user-details-modal";
+
+    modal.innerHTML = `
+        <div class="admin-user-details-overlay"
+             onclick="closeAdminUserDetails()"></div>
+
+        <div class="admin-user-details-card">
+            <button
+                type="button"
+                class="admin-user-details-close"
+                onclick="closeAdminUserDetails()">
+                ✕
+            </button>
+
+            <div class="admin-user-details-icon">👤</div>
+
+            <h2>${username}</h2>
+
+            <div class="admin-user-detail-row">
+                <span>📧 البريد</span>
+                <strong>${email}</strong>
+            </div>
+
+            <div class="admin-user-detail-row">
+                <span>📱 الهاتف</span>
+                <strong>${phone}</strong>
+            </div>
+
+            <div class="admin-user-detail-row">
+                <span>🆔 ID</span>
+                <strong>${id}</strong>
+            </div>
+
+            <div class="admin-user-detail-row">
+                <span>📅 التسجيل</span>
+                <strong>${escapeAdminHTML(created)}</strong>
+            </div>
+
+            <div class="admin-user-detail-row">
+                <span>الحالة</span>
+                <strong>${status}</strong>
+            </div>
+
+            <div class="admin-user-details-actions">
+                <button
+                    type="button"
+                    onclick="warnAdminUser('${id}'); closeAdminUserDetails();">
+                    ⚠️ إرسال تنبيه
+                </button>
+            </div>
+        </div>
+    `;
+
+    document.body.appendChild(modal);
+}
+
+function closeAdminUserDetails() {
+    const modal = document.getElementById("adminUserDetailsModal");
+    if (modal) modal.remove();
+}
+
+window.openAdminUserDetails = openAdminUserDetails;
+window.closeAdminUserDetails = closeAdminUserDetails;
 
 function createUserCard(user) {
 
@@ -488,7 +692,14 @@ function createUserCard(user) {
                 }
 
                 <div class="admin-user-actions">
-                    ${action}
+                    <button
+                                                                      type="button"
+                                                                      class="admin-user-details-button"
+                                                                      onclick="openAdminUserDetails('${id}')">
+                                                                      👁️ تفاصيل
+                                                                  </button>
+
+                                                                  ${action}
                 </div>
 
             </div>
