@@ -97,7 +97,7 @@ async function loadGlobalChat() {
 
             }
 
-        }, 4000);
+        }, 1000);
 
 }
 
@@ -143,29 +143,10 @@ async function loadGlobalMessagesOnly() {
 ========================================= */
 
 function renderGlobalMessages(messages) {
-
     const box =
         document.getElementById("globalMessages");
 
     if (!box) return;
-    
-    // نحافظو على مكان المستخدم أثناء التحديث التلقائي
-    const wasNearBottom =
-        box.scrollHeight - box.scrollTop - box.clientHeight < 120;
-
-
-    if (!messages.length) {
-
-        box.innerHTML = `
-            <div class="global-empty">
-                🌍
-                <h3>مرحبا بالشات العالمي</h3>
-                <p>كن أول واحد يكتب رسالة.</p>
-            </div>
-        `;
-
-        return;
-    }
 
     const myToken =
         localStorage.getItem("token");
@@ -173,7 +154,6 @@ function renderGlobalMessages(messages) {
     let myId = "";
 
     try {
-
         const payload =
             JSON.parse(
                 atob(
@@ -182,69 +162,137 @@ function renderGlobalMessages(messages) {
             );
 
         myId = String(payload.id);
-
     } catch {}
 
-    box.innerHTML =
-        messages.map(item => {
-
-            const mine =
-                String(item.userId) === myId;
-
-            const avatar =
-                item.avatar
-                    ? `<img src="${escapeGlobal(item.avatar)}" alt="">`
-                    : `<span class="global-default-avatar">🌍</span>`;
-
-            return `
-                <div class="global-message ${mine ? "mine" : "other"}">
-
-                    <div class="global-user">
-
-                        <div class="global-avatar">
-                            ${avatar}
-                        </div>
-
-                        <div class="global-user-info">
-
-                            <strong>
-                                ${escapeGlobal(item.username || "مستخدم")}
-                            </strong>
-
-                            <small>
-                                ${escapeGlobal(item.time || "")}
-                            </small>
-
-                        </div>
-
-                    </div>
-
-                    <div class="global-text">
-                        ${escapeGlobal(item.message)}
-                    </div>
-
-                    <div class="global-message-actions">
-
-                        <button
-                            class="global-report-button"
-                            onclick="reportGlobalMessage('${String(item.id || "").replace(/'/g, "\\'")}')"
-                            type="button"
-                        >
-                            🚩 إبلاغ
-                        </button>
-
-                    </div>
-
+    /*
+     * إذا ما كايناش رسائل
+     */
+    if (!messages.length) {
+        if (!box.children.length) {
+            box.innerHTML = `
+                <div class="global-empty">
+                    🌍
+                    <h3>مرحبا بالشات العالمي</h3>
+                    <p>كن أول واحد يكتب رسالة.</p>
                 </div>
             `;
+        }
 
-        }).join("");
+        return;
+    }
 
+    /*
+     * نحيدو شاشة "ما كايناش رسائل"
+     * غير إذا كانت موجودة.
+     */
+    const empty = box.querySelector(".global-empty");
+
+    if (empty) {
+        empty.remove();
+    }
+
+    /*
+     * نعرفو واش المستخدم قريب للقاع
+     */
+    const wasNearBottom =
+        box.scrollHeight -
+        box.scrollTop -
+        box.clientHeight < 120;
+
+    /*
+     * نضيفو غير الرسائل اللي مازال ما كايناش
+     * في DOM.
+     */
+    messages.forEach(item => {
+
+        const messageId =
+            String(item.id || "");
+
+        if (!messageId) return;
+
+        if (
+            box.querySelector(
+                `[data-message-id="${messageId}"]`
+            )
+        ) {
+            return;
+        }
+
+        const mine =
+            String(item.userId) === myId;
+
+        const avatar =
+            item.avatar
+                ? `<img src="${escapeGlobal(item.avatar)}" alt="">`
+                : `<span class="global-default-avatar">🌍</span>`;
+
+        const div =
+            document.createElement("div");
+
+        div.className =
+            `global-message ${mine ? "mine" : "other"}`;
+
+        div.dataset.messageId =
+            messageId;
+
+        div.innerHTML = `
+            <div class="global-user">
+
+                <div class="global-avatar">
+                    ${avatar}
+                </div>
+
+                <div class="global-user-info">
+
+                    <strong>
+                        ${escapeGlobal(
+                            item.username || "مستخدم"
+                        )}
+                    </strong>
+
+                    <small>
+                        ${escapeGlobal(
+                            item.time || ""
+                        )}
+                    </small>
+
+                </div>
+
+            </div>
+
+            <div class="global-text">
+                ${escapeGlobal(
+                    item.message
+                )}
+            </div>
+
+            <div class="global-message-actions">
+
+                <button
+                    class="global-report-button"
+                    onclick="reportGlobalMessage('${messageId.replace(/'/g, "\\'")}')"
+                    type="button"
+                >
+                    🚩 إبلاغ
+                </button>
+
+            </div>
+        `;
+
+        box.appendChild(div);
+    });
+
+    /*
+     * نهبطو للقاع غير إذا كان المستخدم
+     * أصلاً قريب للقاع.
+     */
     if (wasNearBottom) {
-        box.scrollTop = box.scrollHeight;
+        requestAnimationFrame(() => {
+            box.scrollTop =
+                box.scrollHeight;
+        });
     }
 }
-
 
 /* =========================================
    الإبلاغ عن رسالة
