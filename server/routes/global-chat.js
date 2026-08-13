@@ -7,6 +7,63 @@ const router = express.Router();
 const auth = require("../auth");
 const db = require("../database");
 
+let globalChatKvPromise = null;
+
+async function getGlobalChatKV() {
+    if (
+        typeof Deno === "undefined" ||
+        typeof Deno.openKv !== "function"
+    ) {
+        return null;
+    }
+
+    if (!globalChatKvPromise) {
+        globalChatKvPromise = Deno.openKv();
+    }
+
+    return await globalChatKvPromise;
+}
+
+const GLOBAL_CHAT_KEY = ["ultraai", "global-chat", "messages"];
+
+async function loadGlobalMessages() {
+    const kv = await getGlobalChatKV();
+
+    if (kv) {
+        const result = await kv.get(GLOBAL_CHAT_KEY);
+
+        if (Array.isArray(result.value)) {
+            return result.value;
+        }
+
+        return [];
+    }
+
+    // Fallback لـ Termux / Node
+    try {
+        return JSON.parse(
+            fs.readFileSync(FILE, "utf8")
+        );
+    } catch {
+        return [];
+    }
+}
+
+async function saveGlobalMessages(data) {
+    const kv = await getGlobalChatKV();
+
+    if (kv) {
+        await kv.set(GLOBAL_CHAT_KEY, data);
+        return;
+    }
+
+    // Fallback لـ Termux / Node
+    fs.writeFileSync(
+        FILE,
+        JSON.stringify(data, null, 2)
+    );
+}
+
 const FILE =
     path.join(
         __dirname,
@@ -118,7 +175,7 @@ function containsBadWords(text) {
    قراءة الشات العالمي
 ========================================= */
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
 
     /*
      * لغة المستخدم الحالي
@@ -162,7 +219,7 @@ router.get("/", (req, res) => {
 
 
     const messages =
-        load()
+        (await loadGlobalMessages())
             .filter(message =>
                 !message.isAdminBroadcast
             )
@@ -240,7 +297,7 @@ router.get("/", (req, res) => {
 });
 
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
 
     const token =
         req.headers.authorization
@@ -326,7 +383,7 @@ router.post("/", (req, res) => {
 
 
     const messages =
-        load();
+        await loadGlobalMessages();
 
 
     messages.push({
@@ -368,7 +425,7 @@ router.post("/", (req, res) => {
     }
 
 
-    save(messages);
+    await saveGlobalMessages(messages);
 
 
     res.json({
