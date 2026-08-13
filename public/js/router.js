@@ -2,13 +2,10 @@ const root = document.getElementById("root");
 
 
 function makeHeader(target, title, subtitle = "") {
-
     const el = document.getElementById(target);
-
     if (!el) return;
 
     el.innerHTML = `
-
         <header class="v6-header">
 
             <button
@@ -19,15 +16,26 @@ function makeHeader(target, title, subtitle = "") {
             </button>
 
             <div class="v6-header-title">
-
                 <strong>${title}</strong>
-
-                ${subtitle
-                    ? `<span>${subtitle}</span>`
-                    : ""
+                ${
+                    subtitle
+                        ? `<span>${subtitle}</span>`
+                        : ""
                 }
-
             </div>
+
+            <button
+                class="v6-header-notifications"
+                type="button"
+                onclick="loadPage('notifications')"
+                aria-label="الإشعارات">
+                🔔
+                <span
+                    id="notificationBadge"
+                    class="notification-badge"
+                    style="display:none">
+                </span>
+            </button>
 
             <button
                 class="v6-header-more"
@@ -39,7 +47,6 @@ function makeHeader(target, title, subtitle = "") {
         </header>
     `;
 }
-
 
 async function loadPage(page) {
 
@@ -177,7 +184,20 @@ async function loadPage(page) {
         }
 
 
-        /* FORGOT PASSWORD */
+        /* NOTIFICATIONS */
+    if (page === "notifications") {
+        makeHeader(
+            "notificationsHeader",
+            "الإشعارات",
+            "تنبيهات UltraAI"
+        );
+
+        if (typeof loadNotifications === "function") {
+            loadNotifications();
+        }
+    }
+
+    /* FORGOT PASSWORD */
         if (page === "forgot-password") {
             // الصفحة تعتمد على auth.js فقط
         }

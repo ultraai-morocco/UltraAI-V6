@@ -3875,3 +3875,143 @@ button{
     }
 }
 
+
+/* =========================================
+   ULTRAAI NOTIFICATIONS
+   ========================================= */
+
+.v6-header-notifications {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    border: 0;
+    border-radius: 12px;
+    background: transparent;
+    color: inherit;
+    font-size: 20px;
+    cursor: pointer;
+}
+
+.notification-badge {
+    position: absolute;
+    top: 2px;
+    right: 1px;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 4px;
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    background: #ef4444;
+    color: white;
+    font-size: 10px;
+    font-weight: 800;
+    line-height: 1;
+}
+
+.notifications-page {
+    min-height: 100%;
+}
+
+.notifications-section {
+    padding: 18px;
+}
+
+.notifications-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.notifications-topbar h2 {
+    margin: 0;
+}
+
+.notifications-topbar p {
+    margin: 5px 0 0;
+    opacity: .65;
+    font-size: 13px;
+}
+
+.notifications-read-all {
+    border: 0;
+    border-radius: 10px;
+    padding: 9px 12px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.notification-card {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 15px;
+    margin-bottom: 10px;
+    border-radius: 15px;
+    border: 1px solid rgba(127,127,127,.16);
+}
+
+.notification-card.unread {
+    border-color: rgba(239,68,68,.35);
+}
+
+.notification-icon {
+    font-size: 21px;
+    flex-shrink: 0;
+}
+
+.notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.notification-content strong {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.notification-content p {
+    margin: 0 0 7px;
+    line-height: 1.55;
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+.notification-content small {
+    opacity: .55;
+    font-size: 11px;
+}
+
+.notification-read-button {
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: 9px;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+.notifications-loading,
+.notifications-empty,
+.notifications-error {
+    text-align: center;
+    padding: 40px 18px;
+    opacity: .7;
+}
+
+.notifications-empty-icon {
+    font-size: 42px;
+    margin-bottom: 10px;
+}
+
+.notifications-empty strong,
+.notifications-empty span {
+    display: block;
+}
+
+.notifications-empty span {
+    margin-top: 6px;
+    font-size: 13px;
+}

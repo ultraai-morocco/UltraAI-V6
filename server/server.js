@@ -71,6 +71,7 @@ app.use("/conversations-list",require("./routes/conversations-list"));
 app.use("/delete-conversation",require("./routes/delete-conversation"));
 app.use("/privacy",require("./routes/privacy"));
 app.use("/profile",require("./routes/profile"));
+app.use("/notifications", require("./routes/notifications"));
 app.use("/update-profile",require("./routes/update-profile"));
 app.use("/delete-account",require("./routes/delete-account"));
 app.use("/chat-image",require("./routes/chat-image"));
