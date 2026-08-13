@@ -1413,6 +1413,8 @@ async function loadAdminUsersPage() {
             return;
         }
 
+        adminUsersCache = visibleUsers;
+
         list.innerHTML =
             visibleUsers
                 .map(createUserCard)
