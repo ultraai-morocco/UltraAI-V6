@@ -1,15 +1,26 @@
 const express = require("express");
 const router = express.Router();
 
-const db = require("../database");
+const kvUsers = require("../kv-users");
 const auth = require("../auth");
-const { codes } = require("./send-otp");
 
-router.post("/", (req, res) => {
+const {
+    getOTP,
+    deleteOTP
+} = require("./send-otp");
+
+router.post("/", async (req, res) => {
     try {
-        const email = String(req.body.email || "").trim().toLowerCase();
-        const otp = String(req.body.otp || "").trim();
-        const newPassword = String(req.body.newPassword || "");
+        const email =
+            String(req.body.email || "")
+                .trim()
+                .toLowerCase();
+
+        const otp =
+            String(req.body.otp || "").trim();
+
+        const newPassword =
+            String(req.body.newPassword || "");
 
         if (!email || !otp || !newPassword) {
             return res.json({
@@ -21,15 +32,13 @@ router.post("/", (req, res) => {
         if (newPassword.length < 6) {
             return res.json({
                 success: false,
-                message: "كلمة السر خاصها تكون 6 أحرف على الأقل."
+                message:
+                    "كلمة السر خاصها تكون 6 أحرف على الأقل."
             });
         }
 
-        const users = db.loadUsers();
-
-        const user = users.find(
-            u => String(u.email || "").trim().toLowerCase() === email
-        );
+        const user =
+            await kvUsers.findUserByEmail(email);
 
         if (!user) {
             return res.json({
@@ -38,48 +47,58 @@ router.post("/", (req, res) => {
             });
         }
 
-        const saved = codes[email];
+        const saved =
+            await getOTP(email);
 
         if (!saved) {
             return res.json({
                 success: false,
-                message: "رمز التحقق غير موجود أو انتهت صلاحيته."
+                message:
+                    "رمز التحقق غير موجود أو انتهت صلاحيته."
             });
         }
 
         if (Date.now() > saved.expires) {
-            delete codes[email];
+            await deleteOTP(email);
 
             return res.json({
                 success: false,
-                message: "رمز التحقق انتهت صلاحيته."
+                message:
+                    "رمز التحقق انتهت صلاحيته."
             });
         }
 
         if (String(saved.code) !== otp) {
             return res.json({
                 success: false,
-                message: "رمز التحقق غير صحيح."
+                message:
+                    "رمز التحقق غير صحيح."
             });
         }
 
-        user.password = auth.hashPassword(newPassword);
+        user.password =
+            auth.hashPassword(newPassword);
 
-        db.saveUsers(users);
+        await kvUsers.updateUser(user);
 
-        delete codes[email];
+        await deleteOTP(email);
 
         return res.json({
             success: true,
-            message: "تم تغيير كلمة السر بنجاح."
+            message:
+                "تم تغيير كلمة السر بنجاح."
         });
 
     } catch (error) {
-        console.error("RESET PASSWORD ERROR:", error);
+        console.error(
+            "RESET PASSWORD ERROR:",
+            error
+        );
 
         return res.status(500).json({
             success: false,
-            message: "تعذر تغيير كلمة السر."
+            message:
+                "تعذر تغيير كلمة السر."
         });
     }
 });

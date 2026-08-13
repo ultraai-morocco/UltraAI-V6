@@ -60,7 +60,6 @@ app.use("/files", express.static(path.join(__dirname,"uploads")));
 app.use("/register",require("./routes/register"));
 app.use("/send-otp", require("./routes/send-otp").router);
 app.use("/login",require("./routes/login"));
-app.use("/migrate-users",require("./routes/migrate-users"));
 app.use("/reset-password",require("./routes/reset-password"));
 app.use("/chat",require("./routes/chat"));
 app.use("/reports",require("./routes/reports"));

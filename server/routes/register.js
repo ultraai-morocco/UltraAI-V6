@@ -1,7 +1,6 @@
 const express = require("express");
 const router = express.Router();
 
-const db = require("../database");
 const kvUsers = require("../kv-users");
 const auth = require("../auth");
 const { parsePhoneNumberFromString } = require("libphonenumber-js");
@@ -133,13 +132,10 @@ router.post("/", async (req, res) => {
 
     }
 
-    const users = db.loadUsers();
+    const existingPhoneUser =
+        await kvUsers.findUserByPhone(cleanPhone);
 
-    if (
-        users.find(
-            u => u.phone === cleanPhone
-        )
-    ) {
+    if (existingPhoneUser) {
 
         return res.json({
             success: false,

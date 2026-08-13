@@ -1,92 +1,91 @@
-const bcrypt=require("bcryptjs");
-const jwt=require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-const SECRET="UltraAI_SECRET_KEY";
+const SECRET =
+    process.env.ULTRAAI_JWT_SECRET ||
+    "UltraAI_SECRET_KEY";
 
-function hashPassword(password){
-return bcrypt.hashSync(password,10);
+function hashPassword(password) {
+    return bcrypt.hashSync(String(password), 10);
 }
 
-function checkPassword(password,hash){
-return bcrypt.compareSync(password,hash);
+function checkPassword(password, hash) {
+    return bcrypt.compareSync(String(password), String(hash));
 }
 
-function createToken(user){
-
-return jwt.sign({
-
-id:user.id,
-username:user.username,
-email:user.email
-
-},SECRET,{expiresIn:"30d"});
-
+function createToken(user) {
+    return jwt.sign(
+        {
+            id: user.id,
+            username: user.username,
+            email: user.email
+        },
+        SECRET,
+        {
+            expiresIn: "30d"
+        }
+    );
 }
 
-function isUserBanned(userId) {
-
+async function getUserFromToken(token) {
     try {
+        const decoded = jwt.verify(token, SECRET);
 
-        const db = require("./database");
+        const kvUsers = require("./kv-users");
 
-        const users = db.loadUsers();
+        const user =
+            await kvUsers.findUserById(decoded.id);
 
-        const user = users.find(
-            u => String(u.id) === String(userId)
-        );
-
-        return !!(
-            user &&
-            user.banned === true
-        );
-
-    } catch (error) {
-
-        console.error(
-            "BAN CHECK ERROR:",
-            error.message
-        );
-
-        return false;
-    }
-}
-
-
-function verifyToken(token) {
-
-    try {
-
-        const decoded =
-            jwt.verify(token, SECRET);
-
-        if (isUserBanned(decoded.id)) {
-
-            console.log(
-                "🚫 BLOCKED USER:",
-                decoded.id
-            );
-
+        if (!user) {
             return null;
         }
 
-        return decoded;
+        if (user.banned === true) {
+            return null;
+        }
 
-    } catch (e) {
+        return user;
 
+    } catch (error) {
         console.log(
             "JWT ERROR:",
-            e.message
+            error.message
         );
 
         return null;
     }
 }
 
-module.exports={
+function verifyToken(token) {
+    try {
+        return jwt.verify(token, SECRET);
+    } catch {
+        return null;
+    }
+}
 
-hashPassword,
-checkPassword,
-createToken,
-verifyToken
+async function isUserBanned(userId) {
+    try {
+        const kvUsers = require("./kv-users");
 
+        const user =
+            await kvUsers.findUserById(userId);
+
+        return !!(
+            user &&
+            user.banned === true
+        );
+
+    } catch {
+        return false;
+    }
+}
+
+module.exports = {
+    hashPassword,
+    checkPassword,
+    createToken,
+    verifyToken,
+    getUserFromToken,
+    isUserBanned
 };
