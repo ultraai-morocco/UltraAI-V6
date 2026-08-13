@@ -2142,3 +2142,159 @@ async function sendAdminBroadcast() {
 
 window.sendAdminBroadcast =
     sendAdminBroadcast;
+
+/* =========================================
+   HOME NOTIFICATIONS
+========================================= */
+
+async function loadHomeNotifications() {
+    const section = document.getElementById(
+        "ultraHomeNotifications"
+    );
+
+    const list = document.getElementById(
+        "ultraHomeNotificationsList"
+    );
+
+    const badge = document.getElementById(
+        "ultraHomeNotificationsBadge"
+    );
+
+    const token = localStorage.getItem("token");
+
+    if (!token || !section || !list) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "/admin-reports/notifications",
+            {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            section.style.display = "none";
+            return;
+        }
+
+        const notifications =
+            Array.isArray(data.notifications)
+                ? data.notifications
+                : [];
+
+        const unread = notifications.filter(
+            n => n && n.read !== true
+        );
+
+        section.style.display = "block";
+
+        if (badge) {
+            if (unread.length) {
+                badge.textContent = String(unread.length);
+                badge.style.display = "inline-flex";
+            } else {
+                badge.style.display = "none";
+            }
+        }
+
+        if (!notifications.length) {
+            list.innerHTML = `
+                <div class="ultra-home-notifications-empty">
+                    🔔 لا توجد إشعارات جديدة.
+                </div>
+            `;
+            return;
+        }
+
+        list.innerHTML = notifications.map(n => {
+            const id = String(n.id || "");
+            const title = escapeAdminHTML(
+                n.title || "إشعار"
+            );
+            const message = escapeAdminHTML(
+                n.message || ""
+            );
+            const date = n.createdAt
+                ? new Date(n.createdAt)
+                    .toLocaleString("ar-MA")
+                : "";
+
+            const unreadClass =
+                n.read !== true ? " unread" : "";
+
+            return `
+                <div
+                    class="ultra-home-notification${unreadClass}"
+                    onclick="markHomeNotificationRead('${id}')"
+                >
+                    <div class="ultra-home-notification-icon">
+                        ${n.type === "admin-warning" ? "⚠️" : "🔔"}
+                    </div>
+
+                    <div class="ultra-home-notification-content">
+                        <strong>${title}</strong>
+                        <p>${message}</p>
+                        <small>${escapeAdminHTML(date)}</small>
+                    </div>
+
+                    ${
+                        n.read !== true
+                            ? '<span class="ultra-home-notification-dot"></span>'
+                            : ""
+                    }
+                </div>
+            `;
+        }).join("");
+
+    } catch (error) {
+        console.error(
+            "HOME NOTIFICATIONS ERROR:",
+            error
+        );
+        section.style.display = "none";
+    }
+}
+
+async function markHomeNotificationRead(id) {
+    const token = localStorage.getItem("token");
+
+    if (!token || !id) {
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            "/admin-reports/notifications/" +
+            encodeURIComponent(id) +
+            "/read",
+            {
+                method: "POST",
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        if (response.ok) {
+            await loadHomeNotifications();
+        }
+
+    } catch (error) {
+        console.error(
+            "READ NOTIFICATION ERROR:",
+            error
+        );
+    }
+}
+
+window.loadHomeNotifications =
+    loadHomeNotifications;
+
+window.markHomeNotificationRead =
+    markHomeNotificationRead;

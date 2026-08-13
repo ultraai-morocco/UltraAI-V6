@@ -603,4 +603,149 @@ router.get("/users/:id/stats", adminOnly, async (req, res) => {
     }
 });
 
+/*
+ * إشعارات المستخدم
+ * GET /admin-reports/notifications
+ */
+router.get("/notifications", async (req, res) => {
+    try {
+        const header = req.headers.authorization || "";
+        const token = header.startsWith("Bearer ")
+            ? header.slice(7)
+            : "";
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "غير مسجل الدخول."
+            });
+        }
+
+        const payload = auth.verifyToken(token);
+
+        if (!payload || !payload.id) {
+            return res.status(401).json({
+                success: false,
+                message: "جلسة الدخول غير صالحة."
+            });
+        }
+
+        const user = await kvUsers.findUserById(
+            String(payload.id)
+        );
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "الحساب غير موجود."
+            });
+        }
+
+        const notifications = Array.isArray(user.notifications)
+            ? user.notifications
+            : [];
+
+        return res.json({
+            success: true,
+            notifications: notifications
+                .slice()
+                .reverse()
+                .map(n => ({
+                    id: n.id,
+                    type: n.type || "info",
+                    title: n.title || "إشعار",
+                    message: n.message || "",
+                    createdAt: n.createdAt || null,
+                    read: n.read === true
+                }))
+        });
+
+    } catch (error) {
+        console.error(
+            "USER NOTIFICATIONS ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "تعذر تحميل الإشعارات."
+        });
+    }
+});
+
+/*
+ * تحديد إشعار كمقروء
+ * POST /admin-reports/notifications/:id/read
+ */
+router.post("/notifications/:id/read", async (req, res) => {
+    try {
+        const header = req.headers.authorization || "";
+        const token = header.startsWith("Bearer ")
+            ? header.slice(7)
+            : "";
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "غير مسجل الدخول."
+            });
+        }
+
+        const payload = auth.verifyToken(token);
+
+        if (!payload || !payload.id) {
+            return res.status(401).json({
+                success: false,
+                message: "جلسة الدخول غير صالحة."
+            });
+        }
+
+        const user = await kvUsers.findUserById(
+            String(payload.id)
+        );
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "الحساب غير موجود."
+            });
+        }
+
+        if (!Array.isArray(user.notifications)) {
+            user.notifications = [];
+        }
+
+        const notification = user.notifications.find(
+            n => String(n.id) === String(req.params.id)
+        );
+
+        if (!notification) {
+            return res.status(404).json({
+                success: false,
+                message: "الإشعار غير موجود."
+            });
+        }
+
+        notification.read = true;
+
+        await kvUsers.updateUser(user);
+
+        return res.json({
+            success: true,
+            message: "تم تحديد الإشعار كمقروء."
+        });
+
+    } catch (error) {
+        console.error(
+            "READ NOTIFICATION ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message: "تعذر تحديث الإشعار."
+        });
+    }
+});
+
 module.exports = router;

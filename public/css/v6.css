@@ -4253,3 +4253,114 @@ button{
     }
 
 }
+
+/* =========================================
+   HOME NOTIFICATIONS
+========================================= */
+
+.ultra-home-notifications {
+    margin: 18px 0;
+    padding: 18px;
+    border-radius: 18px;
+    background: var(--card-bg, rgba(255,255,255,.06));
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.ultra-home-notifications-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+
+.ultra-home-notifications-header > div {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ultra-home-notifications-header strong {
+    font-size: 19px;
+}
+
+.ultra-home-notifications-header span {
+    opacity: .65;
+    font-size: 13px;
+}
+
+.ultra-home-notifications-badge {
+    min-width: 26px;
+    height: 26px;
+    padding: 0 8px;
+    border-radius: 999px;
+    align-items: center;
+    justify-content: center;
+    background: #e53935;
+    color: white;
+    font-size: 12px;
+    font-weight: 700;
+}
+
+#ultraHomeNotificationsList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ultra-home-notification {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    background: rgba(255,255,255,.04);
+    border: 1px solid rgba(255,255,255,.07);
+    cursor: pointer;
+}
+
+.ultra-home-notification.unread {
+    border-color: rgba(229,57,53,.35);
+}
+
+.ultra-home-notification-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+}
+
+.ultra-home-notification-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.ultra-home-notification-content strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.ultra-home-notification-content p {
+    margin: 0 0 6px;
+    line-height: 1.5;
+    font-size: 14px;
+}
+
+.ultra-home-notification-content small {
+    opacity: .55;
+    font-size: 11px;
+}
+
+.ultra-home-notification-dot {
+    width: 8px;
+    height: 8px;
+    margin-top: 6px;
+    border-radius: 50%;
+    background: #e53935;
+    flex-shrink: 0;
+}
+
+.ultra-home-notifications-empty {
+    padding: 18px;
+    text-align: center;
+    opacity: .6;
+}

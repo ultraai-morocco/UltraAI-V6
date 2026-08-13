@@ -241,6 +241,17 @@ async function loadPage(page) {
 
         /* ADMIN USERS */
 
+
+        /* HOME NOTIFICATIONS */
+        if (page === "home") {
+            if (
+                typeof loadHomeNotifications ===
+                "function"
+            ) {
+                loadHomeNotifications();
+            }
+        }
+
         if (page === "admin-users") {
 
             if (typeof loadAdminUsersPage === "function") {
