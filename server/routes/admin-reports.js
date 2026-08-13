@@ -5,6 +5,7 @@ const path = require("path");
 const router = express.Router();
 
 const auth = require("../auth");
+const kvUsers = require("../kv-users");
 
 const reportsFile =
     path.join(
@@ -303,48 +304,23 @@ router.post("/:id/resolve", adminOnly, (req, res) => {
 });
 
 
-router.get("/users", adminOnly, (req, res) => {
-
+router.get("/users", adminOnly, async (req, res) => {
     try {
+        const users = await kvUsers.getAllUsers();
 
-        const usersFile =
-            path.join(
-                __dirname,
-                "..",
-                "data",
-                "users.json"
-            );
+        const safeUsers = users.map(user => ({
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            phone: user.phone || "",
+            createdAt: user.createdAt,
+            banned: user.banned === true
+        }));
 
-        if (!fs.existsSync(usersFile)) {
-
-            return res.json({
-                success: true,
-                users: []
-            });
-        }
-
-        const users =
-            JSON.parse(
-                fs.readFileSync(
-                    usersFile,
-                    "utf8"
-                ) || "[]"
-            );
-
-        console.log("🟣 ADMIN USERS FILE COUNT:", users.length);
         console.log(
-            "🟣 ADMIN USER IDS:",
-            users.map(u => String(u.id))
+            "🟣 ADMIN USERS KV COUNT:",
+            safeUsers.length
         );
-
-        const safeUsers =
-            users.map(user => ({
-                id: user.id,
-                username: user.username,
-                email: user.email,
-                createdAt: user.createdAt,
-                banned: user.banned === true
-            }));
 
         return res.json({
             success: true,
@@ -352,19 +328,17 @@ router.get("/users", adminOnly, (req, res) => {
         });
 
     } catch (error) {
-
         console.error(
-            "ADMIN USERS ERROR:",
+            "ADMIN USERS KV ERROR:",
             error
         );
 
         return res.status(500).json({
             success: false,
-            message: "تعذر تحميل الحسابات"
+            message: "تعذر تحميل الحسابات من Deno KV"
         });
     }
 });
-
 
 /*
  * حظر مستخدم
@@ -487,28 +461,9 @@ router.post("/users/:id/warn", adminOnly, (req, res) => {
 });
 
 
-router.post("/users/:id/ban", adminOnly, (req, res) => {
-
+router.post("/users/:id/ban", adminOnly, async (req, res) => {
     try {
-
-        const usersFile =
-            path.join(
-                __dirname,
-                "..",
-                "data",
-                "users.json"
-            );
-
-        const users =
-            JSON.parse(
-                fs.readFileSync(
-                    usersFile,
-                    "utf8"
-                ) || "[]"
-            );
-
-        const targetId =
-            String(req.params.id);
+        const targetId = String(req.params.id);
 
         if (
             targetId ===
@@ -520,11 +475,7 @@ router.post("/users/:id/ban", adminOnly, (req, res) => {
             });
         }
 
-        const user =
-            users.find(
-                u =>
-                    String(u.id) === targetId
-            );
+        const user = await kvUsers.findUserById(targetId);
 
         if (!user) {
             return res.status(404).json({
@@ -534,20 +485,12 @@ router.post("/users/:id/ban", adminOnly, (req, res) => {
         }
 
         user.banned = true;
-        user.bannedAt =
-            new Date().toISOString();
+        user.bannedAt = new Date().toISOString();
 
-        fs.writeFileSync(
-            usersFile,
-            JSON.stringify(
-                users,
-                null,
-                2
-            )
-        );
+        await kvUsers.updateUser(user);
 
         console.log(
-            "🚫 USER BANNED:",
+            "🚫 USER BANNED IN KV:",
             user.id,
             user.username
         );
@@ -558,9 +501,8 @@ router.post("/users/:id/ban", adminOnly, (req, res) => {
         });
 
     } catch (error) {
-
         console.error(
-            "ADMIN BAN ERROR:",
+            "ADMIN BAN KV ERROR:",
             error
         );
 
@@ -576,34 +518,12 @@ router.post("/users/:id/ban", adminOnly, (req, res) => {
  * فك حظر مستخدم
  * POST /admin-reports/users/:id/unban
  */
-router.post("/users/:id/unban", adminOnly, (req, res) => {
 
+router.post("/users/:id/unban", adminOnly, async (req, res) => {
     try {
+        const targetId = String(req.params.id);
 
-        const usersFile =
-            path.join(
-                __dirname,
-                "..",
-                "data",
-                "users.json"
-            );
-
-        const users =
-            JSON.parse(
-                fs.readFileSync(
-                    usersFile,
-                    "utf8"
-                ) || "[]"
-            );
-
-        const targetId =
-            String(req.params.id);
-
-        const user =
-            users.find(
-                u =>
-                    String(u.id) === targetId
-            );
+        const user = await kvUsers.findUserById(targetId);
 
         if (!user) {
             return res.status(404).json({
@@ -615,17 +535,10 @@ router.post("/users/:id/unban", adminOnly, (req, res) => {
         user.banned = false;
         delete user.bannedAt;
 
-        fs.writeFileSync(
-            usersFile,
-            JSON.stringify(
-                users,
-                null,
-                2
-            )
-        );
+        await kvUsers.updateUser(user);
 
         console.log(
-            "🔓 USER UNBANNED:",
+            "🔓 USER UNBANNED IN KV:",
             user.id,
             user.username
         );
@@ -636,9 +549,8 @@ router.post("/users/:id/unban", adminOnly, (req, res) => {
         });
 
     } catch (error) {
-
         console.error(
-            "ADMIN UNBAN ERROR:",
+            "ADMIN UNBAN KV ERROR:",
             error
         );
 
