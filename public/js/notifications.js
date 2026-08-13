@@ -249,6 +249,78 @@ async function updateNotificationBadgeFromServer() {
     }
 }
 
+
+/* =========================================
+   NOTIFICATIONS PANEL
+   ========================================= */
+
+function openNotificationsPanel() {
+    let panel = document.getElementById("ultraNotificationsPanel");
+
+    if (!panel) {
+        panel = document.createElement("div");
+        panel.id = "ultraNotificationsPanel";
+        panel.className = "ultra-notifications-panel";
+
+        panel.innerHTML = `
+            <div class="ultra-notifications-overlay"
+                 onclick="closeNotificationsPanel()"></div>
+
+            <div class="ultra-notifications-card">
+
+                <div class="ultra-notifications-header">
+                    <div>
+                        <strong>🔔 الإشعارات</strong>
+                        <span>تنبيهات UltraAI</span>
+                    </div>
+
+                    <button
+                        type="button"
+                        class="ultra-notifications-close"
+                        onclick="closeNotificationsPanel()">
+                        ×
+                    </button>
+                </div>
+
+                <div class="ultra-notifications-actions">
+                    <button
+                        type="button"
+                        onclick="markAllNotificationsRead()">
+                        ✓ قراءة الكل
+                    </button>
+                </div>
+
+                <div id="notificationsList">
+                    <div class="notifications-loading">
+                        جاري تحميل الإشعارات...
+                    </div>
+                </div>
+
+            </div>
+        `;
+
+        document.body.appendChild(panel);
+    }
+
+    panel.classList.add("open");
+    loadNotifications();
+}
+
+function closeNotificationsPanel() {
+    const panel =
+        document.getElementById("ultraNotificationsPanel");
+
+    if (panel) {
+        panel.classList.remove("open");
+    }
+}
+
+window.openNotificationsPanel =
+    openNotificationsPanel;
+
+window.closeNotificationsPanel =
+    closeNotificationsPanel;
+
 function updateNotificationBadge(count) {
     const badge =
         document.getElementById(
