@@ -194,7 +194,22 @@ router.post("/", async (req, res) => {
 
     users.push(user);
 
+    console.log("🟢 REGISTER BEFORE SAVE:", {
+        count: users.length,
+        userId: user.id,
+        username: user.username
+    });
+
     db.saveUsers(users);
+
+    const savedUsers = db.loadUsers();
+
+    console.log("🟢 REGISTER AFTER SAVE:", {
+        count: savedUsers.length,
+        userIdFound: savedUsers.some(
+            u => String(u.id) === String(user.id)
+        )
+    });
 
     await deleteOTP(cleanEmail);
 
