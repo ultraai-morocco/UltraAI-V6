@@ -275,6 +275,10 @@ function createSideMenu(){
                     <span>ℹ️</span>
                     <b>حول UltraAI</b>
                 </button>
+                <button onclick="openFromMenu('privacy')">
+                    <span>🔐</span>
+                    <b>الخصوصية والشروط</b>
+                </button>
 
             </nav>
 

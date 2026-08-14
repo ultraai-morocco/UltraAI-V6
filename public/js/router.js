@@ -218,6 +218,15 @@ async function loadPage(page) {
         /* GLOBAL CHAT */
 
         /* ABOUT ULTRAAI */
+        /* PRIVACY & TERMS */
+        if (page === "privacy") {
+            makeHeader(
+                "privacyHeader",
+                "الخصوصية والشروط",
+                "سياسة الخصوصية وشروط الاستخدام"
+            );
+        }
+
         if (page === "about") {
             makeHeader(
                 "aboutHeader",
