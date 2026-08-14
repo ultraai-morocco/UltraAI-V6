@@ -405,6 +405,7 @@ app.use("/delete-account", require("./routes/delete-account"));
 app.use("/chat-image", require("./routes/chat-image"));
 app.use("/history", require("./routes/history"));
 app.use("/global-chat", require("./routes/global-chat"));
+app.use("/chat", require("./routes/chat"));
 app.use("/ai-chat", require("./routes/ai-chat"));
 app.use("/ai-history", require("./routes/ai-history"));
 app.use("/files-api", require("./routes/files"));
