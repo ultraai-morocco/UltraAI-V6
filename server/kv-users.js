@@ -117,6 +117,23 @@ function cleanEmail(email) {
 }
 
 
+
+function cleanUsername(username) {
+    return String(username || "")
+        .trim()
+        .replace(/\s+/g, " ")
+        .toLowerCase();
+}
+
+function usernameKey(username) {
+    return [
+        "ultraai",
+        "users",
+        "by-username",
+        cleanUsername(username)
+    ];
+}
+
 function cleanPhone(phone) {
 
     return String(phone || "")
@@ -225,6 +242,36 @@ async function findUserByEmail(email) {
    FIND BY ID
 ================================================= */
 
+
+async function findUserByUsername(username) {
+
+    const clean = cleanUsername(username);
+
+    if (!clean) {
+        return null;
+    }
+
+    if (isDenoKVAvailable()) {
+
+        const kv = await getKV();
+
+        const result = await kv.get(
+            usernameKey(clean)
+        );
+
+        return result.value || null;
+    }
+
+    const users = readUsers();
+
+    return (
+        users.find(
+            user =>
+                cleanUsername(user.username) === clean
+        ) || null
+    );
+}
+
 async function findUserById(id) {
 
     const targetId =
@@ -303,19 +350,20 @@ async function findUserByPhone(phone) {
 
 async function saveUser(user) {
 
-    const cleanEmailValue =
-        cleanEmail(user.email);
+    const cleanEmailValue = cleanEmail(user.email);
+    const cleanPhoneValue = cleanPhone(user.phone);
+    const cleanUsernameValue = cleanUsername(user.username);
 
-    const cleanPhoneValue =
-        cleanPhone(user.phone);
+    if (!cleanUsernameValue) {
+        throw new Error("USERNAME_REQUIRED");
+    }
 
-    const safe =
-        safeUser({
-            ...user,
-            email: cleanEmailValue,
-            phone: cleanPhoneValue
-        });
-
+    const safe = safeUser({
+        ...user,
+        username: String(user.username || "").trim(),
+        email: cleanEmailValue,
+        phone: cleanPhoneValue
+    });
 
     /* ===============================
        DENO KV
@@ -323,8 +371,37 @@ async function saveUser(user) {
 
     if (isDenoKVAvailable()) {
 
-        const kv =
-            await getKV();
+        const kv = await getKV();
+
+        const current =
+            await kv.get(idKey(safe.id));
+
+        const usernameResult =
+            await kv.get(
+                usernameKey(cleanUsernameValue)
+            );
+
+        if (
+            usernameResult.value &&
+            String(usernameResult.value.id) !==
+            String(safe.id)
+        ) {
+            throw new Error("USERNAME_TAKEN");
+        }
+
+        /*
+         * حذف username القديم إذا تبدل
+         */
+        if (
+            current.value &&
+            current.value.username &&
+            cleanUsername(current.value.username) !==
+            cleanUsernameValue
+        ) {
+            await kv.delete(
+                usernameKey(current.value.username)
+            );
+        }
 
         await kv.set(
             idKey(safe.id),
@@ -333,6 +410,11 @@ async function saveUser(user) {
 
         await kv.set(
             emailKey(cleanEmailValue),
+            safe
+        );
+
+        await kv.set(
+            usernameKey(cleanUsernameValue),
             safe
         );
 
@@ -347,27 +429,33 @@ async function saveUser(user) {
         return safe;
     }
 
-
     /* ===============================
        NODE / TERMUX
     =============================== */
 
-    const users =
-        readUsers();
+    const users = readUsers();
 
-    const index =
-        users.findIndex(
-            existing =>
-                String(existing.id) ===
-                String(safe.id)
-        );
+    const usernameOwner = users.find(
+        existing =>
+            cleanUsername(existing.username) ===
+            cleanUsernameValue &&
+            String(existing.id) !==
+            String(safe.id)
+    );
+
+    if (usernameOwner) {
+        throw new Error("USERNAME_TAKEN");
+    }
+
+    const index = users.findIndex(
+        existing =>
+            String(existing.id) ===
+            String(safe.id)
+    );
 
     if (index >= 0) {
-
         users[index] = safe;
-
     } else {
-
         users.push(safe);
     }
 
@@ -375,7 +463,6 @@ async function saveUser(user) {
 
     return safe;
 }
-
 
 /* =================================================
    UPDATE USER
@@ -494,6 +581,7 @@ module.exports = {
     getKV,
 
     findUserByEmail,
+    findUserByUsername,
 
     findUserById,
 

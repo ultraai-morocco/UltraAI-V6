@@ -71,6 +71,19 @@ router.put("/", async (req, res) => {
             });
         }
 
+        const usernameUser =
+            await kvUsers.findUserByUsername(username);
+
+        if (
+            usernameUser &&
+            String(usernameUser.id) !== String(user.id)
+        ) {
+            return res.json({
+                success: false,
+                message: "اسم المستخدم مستعمل"
+            });
+        }
+
         if (username.length > 40) {
             return res.json({
                 success: false,

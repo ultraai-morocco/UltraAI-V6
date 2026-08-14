@@ -28,6 +28,81 @@ function detectCountry(phone) {
 }
 
 
+
+/* =================================================
+   RANDOM USERNAME
+   GET /register/random-username
+================================================= */
+
+router.get("/random-username", async (req, res) => {
+
+    try {
+
+        const prefixes = [
+            "Ultra",
+            "Nova",
+            "Pixel",
+            "Smart",
+            "Future",
+            "Vision",
+            "Cyber",
+            "Alpha",
+            "Quantum",
+            "Digital"
+        ];
+
+        for (let attempt = 0; attempt < 30; attempt++) {
+
+            const prefix =
+                prefixes[
+                    Math.floor(
+                        Math.random() * prefixes.length
+                    )
+                ];
+
+            const number =
+                Math.floor(
+                    1000 + Math.random() * 9000
+                );
+
+            const username =
+                `${prefix}${number}`;
+
+            const existing =
+                await kvUsers.findUserByUsername(
+                    username
+                );
+
+            if (!existing) {
+
+                return res.json({
+                    success: true,
+                    username
+                });
+            }
+        }
+
+        return res.status(503).json({
+            success: false,
+            message:
+                "تعذر إنشاء اسم عشوائي، حاول مرة أخرى"
+        });
+
+    } catch (error) {
+
+        console.error(
+            "RANDOM USERNAME ERROR:",
+            error
+        );
+
+        return res.status(500).json({
+            success: false,
+            message:
+                "تعذر إنشاء اسم عشوائي"
+        });
+    }
+});
+
 router.post("/", async (req, res) => {
 
     const {
@@ -119,6 +194,16 @@ router.post("/", async (req, res) => {
 
     }
 
+
+    const existingUsernameUser =
+        await kvUsers.findUserByUsername(cleanUsername);
+
+    if (existingUsernameUser) {
+        return res.json({
+            success: false,
+            message: "اسم المستخدم مستعمل، اختار اسم آخر"
+        });
+    }
 
     const existingUser =
         await kvUsers.findUserByEmail(cleanEmail);

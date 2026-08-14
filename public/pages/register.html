@@ -4,10 +4,28 @@
 
         <h2>📝 إنشاء حساب UltraAI</h2>
 
-        <input
-            type="text"
-            id="registerUsername"
-            placeholder="الاسم الكامل">
+        <div style="display:flex;gap:8px;align-items:center">
+
+    <input
+        type="text"
+        id="registerUsername"
+        placeholder="اسم المستخدم"
+        autocomplete="username"
+        style="flex:1">
+
+    <button
+        type="button"
+        id="randomUsernameButton"
+        onclick="generateRandomUsername()"
+        style="white-space:nowrap">
+        🎲 اسم عشوائي
+    </button>
+
+</div>
+
+<small style="display:block;margin:6px 0 12px;opacity:.7">
+    اسم المستخدم خاصو يكون مختلف عن باقي المستخدمين
+</small>
 
         <input
             type="email"

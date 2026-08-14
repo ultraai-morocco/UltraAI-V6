@@ -27,10 +27,77 @@ async function sendOTP() {
 
 }
 
+
+async function generateRandomUsername() {
+
+    const input =
+        document.getElementById(
+            "registerUsername"
+        );
+
+    const button =
+        document.getElementById(
+            "randomUsernameButton"
+        );
+
+    if (!input) return;
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "⏳ جاري...";
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                "/register/random-username"
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            data.success &&
+            data.username
+        ) {
+
+            input.value = data.username;
+            input.focus();
+
+        } else {
+
+            alert(
+                data.message ||
+                "تعذر اختيار اسم عشوائي"
+            );
+        }
+
+    } catch (error) {
+
+        console.error(
+            "RANDOM USERNAME ERROR:",
+            error
+        );
+
+        alert(
+            "تعذر الاتصال بالسيرفر"
+        );
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "🎲 اسم عشوائي";
+        }
+    }
+}
+
 async function register() {
 
     const username =
-        document.getElementById("registerUsername").value;
+        document.getElementById("registerUsername").value.trim();
 
     const email =
         document.getElementById("registerEmail").value;
