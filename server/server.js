@@ -96,7 +96,7 @@ app.use(async (req, res, next) => {
         if (
             req.path === "/login" ||
             req.path === "/send-otp" ||
-            req.path === "/register" ||
+            req.path === "/register" || req.path.startsWith("/register/") ||
             req.path === "/reset-password"
         ) {
             return next();
