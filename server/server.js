@@ -55,6 +55,7 @@ app.use(cors());
 app.use(express.json({limit:"6mb"}));
 
 app.use("/login",require("./routes/login"));
+app.use("/register",require("./routes/register"));
 app.use("/maintenance",require("./routes/maintenance"));
 
 /* =========================================
