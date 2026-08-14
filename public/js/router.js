@@ -23,21 +23,7 @@ function makeHeader(target, title, subtitle = "") {
                         : ""
                 }
             </div>
-
-            <button
-                class="v6-header-notifications"
-                type="button"
-                onclick="loadPage('notifications')"
-                aria-label="الإشعارات">
-                🔔
-                <span
-                    id="notificationBadge"
-                    class="notification-badge"
-                    style="display:none">
-                </span>
-            </button>
-
-            <button
+<button
                 class="v6-header-more"
                 type="button"
                 onclick="openPageMenu()">

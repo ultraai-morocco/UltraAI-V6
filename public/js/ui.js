@@ -14,24 +14,7 @@ function pageHeader(title, subtitle=""){
                 <strong>${title}</strong>
                 ${subtitle ? `<span>${subtitle}</span>` : ""}
             </div>
-
-            <button
-                class="v6-notification-button"
-                type="button"
-                aria-label="الإشعارات"
-                onclick="openNotificationsPanel()">
-
-                🔔
-
-                <span
-                    id="notificationBadge"
-                    class="v6-notification-badge"
-                    style="display:none;">
-                </span>
-
-            </button>
-
-            <button
+<button
                 class="v6-header-more"
                 type="button"
                 onclick="openPageMenu()">
