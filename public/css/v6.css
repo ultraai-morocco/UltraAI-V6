@@ -5166,3 +5166,157 @@ button{
         font-size: 24px;
     }
 }
+
+/* =========================================================
+   ULTRAAI SUPPORT
+   ========================================================= */
+
+.support-page {
+    width: min(900px, 100%);
+    margin: 0 auto;
+    padding: 20px 16px 40px;
+    box-sizing: border-box;
+}
+
+.support-hero {
+    text-align: center;
+    padding: 25px 12px 28px;
+}
+
+.support-icon {
+    width: 72px;
+    height: 72px;
+    margin: 0 auto 14px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 34px;
+    background: rgba(127,127,127,.12);
+}
+
+.support-hero h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.support-hero p {
+    margin: 8px 0 0;
+    opacity: .7;
+    line-height: 1.7;
+}
+
+.support-card {
+    margin-bottom: 16px;
+    padding: 20px;
+    border-radius: 18px;
+    background: rgba(127,127,127,.08);
+    border: 1px solid rgba(127,127,127,.12);
+}
+
+.support-card h2 {
+    margin: 0 0 12px;
+    font-size: 20px;
+}
+
+.support-card p {
+    margin: 8px 0;
+    line-height: 1.85;
+}
+
+.support-faq {
+    border-top: 1px solid rgba(127,127,127,.12);
+}
+
+.support-faq:first-of-type {
+    border-top: 0;
+}
+
+.support-faq summary {
+    padding: 16px 4px;
+    cursor: pointer;
+    font-weight: 700;
+    list-style-position: inside;
+}
+
+.support-faq p {
+    padding: 0 8px 14px;
+    margin: 0;
+    font-size: 14px;
+    opacity: .75;
+}
+
+.support-email {
+    display: inline-block;
+    margin-top: 8px;
+    padding: 11px 16px;
+    border-radius: 13px;
+    background: rgba(127,127,127,.12);
+    color: inherit;
+    text-decoration: none;
+    font-weight: 700;
+    direction: ltr;
+}
+
+.support-email:hover {
+    opacity: .8;
+}
+
+.support-list {
+    margin: 12px 0;
+    padding-right: 24px;
+    line-height: 2;
+}
+
+.support-note {
+    font-size: 13px;
+    opacity: .6;
+}
+
+.support-contact-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 8px;
+    padding: 12px 18px;
+    border-radius: 14px;
+    background: rgba(127,127,127,.12);
+    color: inherit;
+    text-decoration: none;
+    font-weight: 700;
+}
+
+.support-contact-button:hover {
+    opacity: .8;
+}
+
+.support-footer {
+    text-align: center;
+    padding: 20px 10px;
+    opacity: .6;
+}
+
+.support-footer strong,
+.support-footer span {
+    display: block;
+}
+
+.support-footer span {
+    margin-top: 5px;
+    font-size: 13px;
+}
+
+@media (max-width: 600px) {
+    .support-page {
+        padding: 10px 12px 30px;
+    }
+
+    .support-card {
+        padding: 16px;
+        border-radius: 16px;
+    }
+
+    .support-hero h1 {
+        font-size: 24px;
+    }
+}

@@ -219,6 +219,15 @@ async function loadPage(page) {
 
         /* ABOUT ULTRAAI */
         /* PRIVACY & TERMS */
+        /* SUPPORT */
+        if (page === "support") {
+            makeHeader(
+                "supportHeader",
+                "المساعدة والدعم",
+                "مركز مساعدة UltraAI"
+            );
+        }
+
         if (page === "privacy") {
             makeHeader(
                 "privacyHeader",

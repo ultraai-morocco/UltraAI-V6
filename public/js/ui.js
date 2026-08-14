@@ -279,6 +279,10 @@ function createSideMenu(){
                     <span>🔐</span>
                     <b>الخصوصية والشروط</b>
                 </button>
+                <button onclick="openFromMenu('support')">
+                    <span>🆘</span>
+                    <b>المساعدة والدعم</b>
+                </button>
 
             </nav>
 
