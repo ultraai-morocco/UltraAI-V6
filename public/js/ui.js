@@ -76,6 +76,28 @@ function toggleSideMenu(){
 }
 
 
+
+window.updateAdminSidebarButton = async function() {
+    const button = document.getElementById("adminPanelMenuButton");
+
+    if (!button) return;
+
+    button.style.display = "none";
+
+    try {
+        if (typeof isUltraAIAdmin !== "function") return;
+
+        const isAdmin = await isUltraAIAdmin();
+
+        if (isAdmin) {
+            button.style.display = "flex";
+        }
+    } catch (error) {
+        console.error("Admin sidebar check error:", error);
+        button.style.display = "none";
+    }
+}
+
 function openFromMenu(page){
 
     closePageMenu();
@@ -103,16 +125,56 @@ function newAIConversation(){
 
 function logoutUltraAI(){
 
+    /*
+     * تسجيل الخروج محلي بالكامل.
+     */
     localStorage.removeItem("token");
     localStorage.removeItem("activeConversationId");
     localStorage.removeItem("activeConversationMessages");
 
     closePageMenu();
 
-    loadPage("welcome");
+    /*
+     * Welcome محلية.
+     * ما نعتمدوش على السيرفر باش Logout يبقى خدام
+     * حتى أثناء Maintenance Mode.
+     */
+    const root =
+        document.getElementById("root");
 
+    if (root) {
+
+        root.innerHTML = `
+            <div class="welcome">
+
+                <h1>🚀 UltraAI</h1>
+
+                <p>
+                    المساعد الذكي الجديد
+                </p>
+
+                <button
+                    type="button"
+                    onclick="loadPage('login')">
+                    تسجيل الدخول
+                </button>
+
+                <button
+                    type="button"
+                    onclick="loadPage('register')">
+                    إنشاء حساب
+                </button>
+
+            </div>
+        `;
+
+        window.scrollTo(0, 0);
+
+        return;
+    }
+
+    window.location.href = "/";
 }
-
 
 function createSideMenu(){
 
@@ -199,6 +261,14 @@ function createSideMenu(){
                     <span id="adminInboxBadge" class="admin-inbox-badge"></span>
                 </button>
 
+                <button
+                    id="adminPanelMenuButton"
+                    onclick="openFromMenu('admin')"
+                    style="display:none;">
+                    <span>👑</span>
+                    <b>لوحة الإدارة</b>
+                </button>
+
                 <button onclick="openFromMenu('chat')">
                     <span>💬</span>
                     <b>المحادثات</b>
@@ -241,6 +311,16 @@ function createSideMenu(){
 
 
     document.body.appendChild(menu);
+        /*
+     * من بعد ما تتصاوب القائمة الجانبية،
+     * نتحقق من صلاحية Admin بعد تحميل كل الملفات.
+     */
+    setTimeout(() => {
+        if (typeof window.updateAdminSidebarButton === "function") {
+            window.updateAdminSidebarButton();
+        }
+    }, 300);
+
 
 }
 

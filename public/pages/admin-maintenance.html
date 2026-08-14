@@ -1,0 +1,83 @@
+<div class="admin-page">
+
+    <div class="admin-header">
+
+        <button
+            class="admin-back"
+            onclick="loadPage('admin')">
+            ← الإدارة
+        </button>
+
+        <div>
+            <h1>🛠️ وضع الصيانة</h1>
+            <p>التحكم في إتاحة UltraAI للمستخدمين</p>
+        </div>
+
+    </div>
+
+
+    <section class="admin-section">
+
+        <div class="admin-section-title">
+
+            <div>
+                <h2>حالة الموقع</h2>
+
+                <p id="adminMaintenanceStatus">
+                    جاري تحميل الحالة...
+                </p>
+
+            </div>
+
+        </div>
+
+
+        <div class="admin-maintenance-box">
+
+            <div
+                id="adminMaintenanceStatusIcon"
+                class="admin-maintenance-icon">
+                🛠️
+            </div>
+
+
+            <h2 id="adminMaintenanceStatusText">
+                جاري التحقق...
+            </h2>
+
+
+            <p id="adminMaintenanceStatusMessage">
+                جاري تحميل حالة الصيانة.
+            </p>
+
+
+            <textarea
+                id="adminMaintenanceMessage"
+                class="admin-maintenance-message"
+                rows="4"
+                placeholder="اكتب الرسالة التي ستظهر للمستخدمين أثناء الصيانة...">🛠️ جاري الصيانة، المرجو المحاولة لاحقاً.</textarea>
+
+
+            <div class="admin-maintenance-actions">
+
+                <button
+                    id="adminMaintenanceToggle"
+                    type="button"
+                    class="admin-maintenance-enable"
+                    onclick="toggleAdminMaintenance()">
+                    🔄 جاري التحقق...
+                </button>
+
+            </div>
+
+
+            <div
+                id="maintenanceResult"
+                class="admin-message">
+            </div>
+
+        </div>
+
+    </section>
+
+</div>

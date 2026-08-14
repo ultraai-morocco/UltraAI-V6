@@ -54,9 +54,88 @@ async function loadPage(page) {
 
         closePageMenu();
 
-        const response = await fetch(`/pages/${page}.html`);
+        const token = localStorage.getItem("token");
+
+          const response = await fetch(
+              `/pages/${page}.html`,
+              {
+                  headers: token
+                      ? {
+                          "Authorization": "Bearer " + token
+                      }
+                      : {}
+              }
+          );
 
         if (!response.ok) {
+
+            /*
+             * UltraAI Maintenance Mode
+             */
+            if (response.status === 503) {
+
+                try {
+                    const maintenanceData =
+                        await response.json();
+
+                    /*
+                     * Admin can enter UltraAI even during maintenance.
+                     */
+                    if (maintenanceData.isAdmin === true) {
+                        throw new Error("ADMIN_MAINTENANCE_BYPASS");
+                    }
+
+                    root.innerHTML = `
+                        <div class="welcome ultraai-maintenance-page">
+                            <div style="font-size:64px;margin-bottom:20px;">
+                                🛠️
+                            </div>
+
+                            <h2>
+                                جاري الصيانة
+                            </h2>
+
+                            <p>
+                                ${
+                                    maintenanceData.message ||
+                                    "نقوم حالياً بإجراء بعض التحسينات على UltraAI، المرجو المحاولة لاحقاً."
+                                }
+                            </p>
+                        </div>
+                    `;
+
+                    return;
+
+                } catch (error) {
+
+                    if (error && error.message === "ADMIN_MAINTENANCE_BYPASS") {
+                        /*
+                         * Admin bypass.
+                         * Continue loading the requested page.
+                         */
+                    } else {
+
+                        root.innerHTML = `
+                            <div class="welcome ultraai-maintenance-page">
+                                <div style="font-size:64px;margin-bottom:20px;">
+                                    🛠️
+                                </div>
+
+                                <h2>
+                                    جاري الصيانة
+                                </h2>
+
+                                <p>
+                                    نقوم حالياً بإجراء بعض التحسينات على UltraAI، المرجو المحاولة لاحقاً.
+                                </p>
+                            </div>
+                        `;
+
+                        return;
+                    }
+                }
+            }
+
             throw new Error("Page not found: " + page);
         }
 
@@ -289,6 +368,19 @@ async function loadPage(page) {
 
             if (typeof loadAdminPendingPage === "function") {
                 loadAdminPendingPage();
+            }
+
+        }
+
+
+        /* ADMIN MAINTENANCE */
+
+        if (page === "admin-maintenance") {
+
+            if (typeof loadAdminMaintenance === "function") {
+                setTimeout(() => {
+                    loadAdminMaintenance();
+                }, 50);
             }
 
         }

@@ -82,51 +82,6 @@ async function isUltraAIAdmin() {
 }
 
 
-async function addAdminMenuButton() {
-
-    const nav =
-        document.querySelector(".side-nav");
-
-    if (!nav) return;
-
-    const isAdmin =
-        await isUltraAIAdmin();
-
-    if (!isAdmin) return;
-
-    if (
-        document.getElementById(
-            "adminMenuButton"
-        )
-    ) {
-        return;
-    }
-
-    const button =
-        document.createElement("button");
-
-    button.id =
-        "adminMenuButton";
-
-    button.innerHTML = `
-        <span>👑</span>
-        <b>الإدارة</b>
-    `;
-
-    button.onclick = function () {
-
-        closePageMenu();
-
-        setTimeout(() => {
-
-            loadPage("admin");
-
-        }, 120);
-    };
-
-    nav.appendChild(button);
-}
-
 /* =========================================
    ADMIN PAGE
 ========================================= */
@@ -1587,47 +1542,7 @@ window.loadAdminReports =
 window.loadAdminUsers =
     loadAdminUsers;
 
-window.addAdminMenuButton =
-    addAdminMenuButton;
 
-
-/* =========================================
-   START
-========================================= */
-
-document.addEventListener(
-    "DOMContentLoaded",
-    function () {
-
-        /*
-         * القائمة الجانبية كتتحمل ديناميكياً،
-         * لذلك نحاول أكثر من مرة حتى تظهر.
-         */
-        let attempts = 0;
-
-        const tryAddAdminButton = async () => {
-
-            attempts++;
-
-            await addAdminMenuButton();
-
-            if (
-                document.getElementById("adminMenuButton") ||
-                attempts >= 20
-            ) {
-                return;
-            }
-
-            setTimeout(
-                tryAddAdminButton,
-                300
-            );
-        };
-
-        tryAddAdminButton();
-
-    }
-);
 
 /* =========================================
    BANNED USERS
