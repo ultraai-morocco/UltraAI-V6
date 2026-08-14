@@ -1308,6 +1308,276 @@ function escapeAdminHTML(value) {
 }
 
 
+
+/* =========================================
+   ULTRAAI MAINTENANCE CONTROL
+   ========================================= */
+
+async function loadAdminMaintenance() {
+
+    const status =
+        document.getElementById("adminMaintenanceStatus");
+
+    const statusText =
+        document.getElementById("adminMaintenanceStatusText");
+
+    const icon =
+        document.getElementById("adminMaintenanceStatusIcon");
+
+    const button =
+        document.getElementById("adminMaintenanceToggle");
+
+    const message =
+        document.getElementById("adminMaintenanceMessage");
+
+    if (!status || !button) return;
+
+    status.textContent = "جاري التحقق...";
+    statusText.textContent = "...";
+    button.disabled = true;
+
+    try {
+
+        const response =
+            await fetch("/maintenance");
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message ||
+                "تعذر تحميل حالة الصيانة."
+            );
+        }
+
+        const maintenance =
+            data.maintenance || {};
+
+        const enabled =
+            maintenance.enabled === true;
+
+        icon.textContent =
+            enabled ? "🔴" : "🟢";
+
+        status.textContent =
+            enabled
+                ? "الموقع تحت الصيانة"
+                : "الموقع يعمل بشكل طبيعي";
+
+        statusText.textContent =
+            enabled
+                ? "المستخدمون حالياً يشاهدون رسالة الصيانة."
+                : "المستخدمون يستطيعون استعمال UltraAI.";
+
+        button.textContent =
+            enabled
+                ? "🟢 إيقاف وضع الصيانة"
+                : "🔴 تفعيل وضع الصيانة";
+
+        button.disabled = false;
+
+        if (
+            maintenance.message &&
+            message &&
+            !message.dataset.edited
+        ) {
+            message.value =
+                maintenance.message;
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Admin maintenance error:",
+            error
+        );
+
+        status.textContent =
+            "❌ تعذر تحميل الحالة";
+
+        statusText.textContent =
+            error.message || "";
+
+        button.textContent =
+            "🔄 إعادة المحاولة";
+
+        button.disabled = false;
+    }
+}
+
+
+async function toggleAdminMaintenance() {
+
+    const button =
+        document.getElementById(
+            "adminMaintenanceToggle"
+        );
+
+    const message =
+        document.getElementById(
+            "adminMaintenanceMessage"
+        );
+
+    const statusMessage =
+        document.getElementById(
+            "adminMaintenanceStatusMessage"
+        );
+
+    if (!button) return;
+
+    button.disabled = true;
+
+    try {
+
+        const currentResponse =
+            await fetch("/maintenance");
+
+        const currentData =
+            await currentResponse.json();
+
+        if (
+            !currentResponse.ok ||
+            !currentData.success
+        ) {
+            throw new Error(
+                currentData.message ||
+                "تعذر معرفة الحالة الحالية."
+            );
+        }
+
+        const current =
+            currentData.maintenance || {};
+
+        const nextEnabled =
+            current.enabled !== true;
+
+        if (nextEnabled) {
+
+            const confirmed =
+                confirm(
+                    "⚠️ واش متأكد بغيتي توقف الموقع وتفعل وضع الصيانة؟"
+                );
+
+            if (!confirmed) {
+                button.disabled = false;
+                return;
+            }
+        }
+
+        const token =
+            localStorage.getItem("token");
+
+        const response =
+            await fetch(
+                "/maintenance",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            "Bearer " + token
+                    },
+
+                    body: JSON.stringify({
+                        enabled:
+                            nextEnabled,
+
+                        message:
+                            message?.value ||
+                            "🛠️ جاري الصيانة، المرجو المحاولة لاحقاً."
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+            throw new Error(
+                data.message ||
+                "تعذر تحديث وضع الصيانة."
+            );
+        }
+
+        if (statusMessage) {
+            statusMessage.textContent =
+                nextEnabled
+                    ? "🔴 تم تفعيل وضع الصيانة."
+                    : "🟢 تم إيقاف وضع الصيانة.";
+        }
+
+        await loadAdminMaintenance();
+
+    } catch (error) {
+
+        console.error(
+            "Toggle maintenance error:",
+            error
+        );
+
+        if (statusMessage) {
+            statusMessage.textContent =
+                "❌ " +
+                (error.message ||
+                 "تعذر تحديث وضع الصيانة.");
+        }
+
+        button.disabled = false;
+    }
+}
+
+
+const maintenanceMessageInput =
+    document.getElementById(
+        "adminMaintenanceMessage"
+    );
+
+if (maintenanceMessageInput) {
+
+    maintenanceMessageInput.addEventListener(
+        "input",
+        () => {
+            maintenanceMessageInput.dataset.edited =
+                "1";
+        }
+    );
+}
+
+
+window.loadAdminMaintenance =
+    loadAdminMaintenance;
+
+window.toggleAdminMaintenance =
+    toggleAdminMaintenance;
+
+
+/*
+ * تحميل حالة الصيانة مع لوحة Admin
+ */
+const originalLoadAdminPage =
+    window.loadAdminPage;
+
+if (typeof originalLoadAdminPage === "function") {
+
+    window.loadAdminPage =
+        async function () {
+
+            await originalLoadAdminPage();
+
+            setTimeout(() => {
+                loadAdminMaintenance();
+            }, 100);
+        };
+}
+
+
 window.loadAdminPage =
     loadAdminPage;
 
@@ -1902,399 +2172,3 @@ async function loadAdminDashboardCounts() {
 /* =========================================
    UPDATE ADMIN PAGE
 ========================================= */
-
-const originalLoadAdminPage =
-    loadAdminPage;
-
-loadAdminPage = async function () {
-
-    if (!(await isUltraAIAdmin())) {
-
-        alert(
-            "🚫 غير مسموح لك بالدخول إلى لوحة الإدارة."
-        );
-
-        loadPage("home");
-
-        return;
-    }
-
-    await loadAdminDashboardCounts();
-};
-
-
-window.loadAdminUsersPage =
-    loadAdminUsersPage;
-
-window.loadAdminReportsPage =
-    loadAdminReportsPage;
-
-window.loadAdminPendingPage =
-    loadAdminPendingPage;
-
-window.loadAdminBannedPage =
-    loadAdminBannedPage;
-
-
-/*
- * =========================================
- * ADMIN BROADCAST
- * =========================================
- */
-
-async function sendAdminBroadcast() {
-
-    if (!(await isUltraAIAdmin())) {
-
-        alert(
-            "🚫 غير مسموح لك."
-        );
-
-        return;
-
-    }
-
-
-    const input =
-        document.getElementById(
-            "adminBroadcastMessage"
-        );
-
-
-    const status =
-        document.getElementById(
-            "adminBroadcastStatus"
-        );
-
-
-    if (!input) return;
-
-
-    const message =
-        String(
-            input.value || ""
-        ).trim();
-
-
-    if (!message) {
-
-        alert(
-            "كتب الرسالة أولاً."
-        );
-
-        return;
-
-    }
-
-
-    if (message.length > 2000) {
-
-        alert(
-            "الرسالة طويلة بزاف."
-        );
-
-        return;
-
-    }
-
-
-    const token =
-        localStorage.getItem(
-            "token"
-        );
-
-
-    if (!token) {
-
-        alert(
-            "خاصك تسجل الدخول."
-        );
-
-        return;
-
-    }
-
-
-    const button =
-        document.querySelector(
-            ".admin-broadcast-button"
-        );
-
-
-    if (button) {
-
-        button.disabled = true;
-
-        button.textContent =
-            "⏳ جاري الإرسال...";
-
-    }
-
-
-    if (status) {
-
-        status.textContent =
-            "🤖 جاري تجهيز الترجمات وإرسال الرسالة...";
-
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-                "/admin-broadcast",
-                {
-
-                    method:
-                        "POST",
-
-                    headers: {
-
-                        "Content-Type":
-                            "application/json",
-
-                        "Authorization":
-                            "Bearer " + token
-
-                    },
-
-                    body:
-                        JSON.stringify({
-                            message
-                        })
-
-                }
-            );
-
-
-        const data =
-            await response.json();
-
-
-        if (!data.success) {
-
-            throw new Error(
-                data.message ||
-                "تعذر إرسال الرسالة"
-            );
-
-        }
-
-
-        input.value = "";
-
-
-        if (status) {
-
-            status.textContent =
-                "✅ تم إرسال الرسالة لجميع المستخدمين.";
-
-        }
-
-
-        alert(
-            "✅ وصلت رسالة الإدارة لجميع المستخدمين."
-        );
-
-
-    } catch (error) {
-
-        console.error(
-            "ADMIN BROADCAST ERROR:",
-            error
-        );
-
-
-        if (status) {
-
-            status.textContent =
-                "❌ " +
-                (
-                    error.message ||
-                    "تعذر إرسال الرسالة"
-                );
-
-        }
-
-
-        alert(
-            error.message ||
-            "تعذر إرسال الرسالة."
-        );
-
-
-    } finally {
-
-        if (button) {
-
-            button.disabled = false;
-
-            button.textContent =
-                "📢 إرسال للجميع";
-
-        }
-
-    }
-
-}
-
-
-window.sendAdminBroadcast =
-    sendAdminBroadcast;
-
-/* =========================================
-   HOME NOTIFICATIONS
-========================================= */
-
-async function loadHomeNotifications() {
-    const section = document.getElementById(
-        "ultraHomeNotifications"
-    );
-
-    const list = document.getElementById(
-        "ultraHomeNotificationsList"
-    );
-
-    const badge = document.getElementById(
-        "ultraHomeNotificationsBadge"
-    );
-
-    const token = localStorage.getItem("token");
-
-    if (!token || !section || !list) {
-        return;
-    }
-
-    try {
-        const response = await fetch(
-            "/admin-reports/notifications",
-            {
-                headers: {
-                    "Authorization": "Bearer " + token
-                }
-            }
-        );
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            section.style.display = "none";
-            return;
-        }
-
-        const notifications =
-            Array.isArray(data.notifications)
-                ? data.notifications
-                : [];
-
-        const unread = notifications.filter(
-            n => n && n.read !== true
-        );
-
-        section.style.display = "block";
-
-        if (badge) {
-            if (unread.length) {
-                badge.textContent = String(unread.length);
-                badge.style.display = "inline-flex";
-            } else {
-                badge.style.display = "none";
-            }
-        }
-
-        if (!notifications.length) {
-            list.innerHTML = `
-                <div class="ultra-home-notifications-empty">
-                    🔔 لا توجد إشعارات جديدة.
-                </div>
-            `;
-            return;
-        }
-
-        list.innerHTML = notifications.map(n => {
-            const id = String(n.id || "");
-            const title = escapeAdminHTML(
-                n.title || "إشعار"
-            );
-            const message = escapeAdminHTML(
-                n.message || ""
-            );
-            const date = n.createdAt
-                ? new Date(n.createdAt)
-                    .toLocaleString("ar-MA")
-                : "";
-
-            const unreadClass =
-                n.read !== true ? " unread" : "";
-
-            return `
-                <div
-                    class="ultra-home-notification${unreadClass}"
-                    onclick="markHomeNotificationRead('${id}')"
-                >
-                    <div class="ultra-home-notification-icon">
-                        ${n.type === "admin-warning" ? "⚠️" : "🔔"}
-                    </div>
-
-                    <div class="ultra-home-notification-content">
-                        <strong>${title}</strong>
-                        <p>${message}</p>
-                        <small>${escapeAdminHTML(date)}</small>
-                    </div>
-
-                    ${
-                        n.read !== true
-                            ? '<span class="ultra-home-notification-dot"></span>'
-                            : ""
-                    }
-                </div>
-            `;
-        }).join("");
-
-    } catch (error) {
-        console.error(
-            "HOME NOTIFICATIONS ERROR:",
-            error
-        );
-        section.style.display = "none";
-    }
-}
-
-async function markHomeNotificationRead(id) {
-    const token = localStorage.getItem("token");
-
-    if (!token || !id) {
-        return;
-    }
-
-    try {
-        const response = await fetch(
-            "/admin-reports/notifications/" +
-            encodeURIComponent(id) +
-            "/read",
-            {
-                method: "POST",
-                headers: {
-                    "Authorization": "Bearer " + token
-                }
-            }
-        );
-
-        if (response.ok) {
-            await loadHomeNotifications();
-        }
-
-    } catch (error) {
-        console.error(
-            "READ NOTIFICATION ERROR:",
-            error
-        );
-    }
-}
-
-window.loadHomeNotifications =
-    loadHomeNotifications;
-
-window.markHomeNotificationRead =
-    markHomeNotificationRead;

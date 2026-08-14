@@ -280,6 +280,84 @@
     </section>
 
 
+
+    <!-- =====================================
+         MAINTENANCE MODE
+    ====================================== -->
+
+    <section class="admin-section admin-maintenance-section">
+
+        <div class="admin-section-title">
+
+            <div>
+                <h2>🛠️ وضع الصيانة</h2>
+                <p>
+                    وقف وصول المستخدمين للموقع مؤقتاً أثناء التحديثات.
+                </p>
+            </div>
+
+        </div>
+
+        <div class="admin-maintenance-card">
+
+            <div class="admin-maintenance-status-row">
+
+                <span id="adminMaintenanceStatusIcon">
+                    🟢
+                </span>
+
+                <div>
+                    <strong id="adminMaintenanceStatus">
+                        جاري التحقق...
+                    </strong>
+
+                    <small id="adminMaintenanceStatusText">
+                        ...
+                    </small>
+                </div>
+
+            </div>
+
+            <textarea
+                id="adminMaintenanceMessage"
+                class="admin-broadcast-textarea"
+                maxlength="1000"
+                rows="4"
+                placeholder="رسالة الصيانة للمستخدمين...">🛠️ جاري الصيانة، المرجو المحاولة لاحقاً.</textarea>
+
+            <div class="admin-broadcast-actions">
+
+                <button
+                    type="button"
+                    id="adminMaintenanceToggle"
+                    class="admin-broadcast-button"
+                    onclick="toggleAdminMaintenance()">
+
+                    ⏳ جاري التحميل...
+
+                </button>
+
+                <button
+                    type="button"
+                    class="admin-refresh"
+                    onclick="loadAdminMaintenance()">
+
+                    🔄 تحديث
+
+                </button>
+
+            </div>
+
+            <div
+                id="adminMaintenanceStatusMessage"
+                class="admin-broadcast-status">
+            </div>
+
+        </div>
+
+    </section>
+
+
     <!-- =====================================
          ADMIN INFO
     ====================================== -->

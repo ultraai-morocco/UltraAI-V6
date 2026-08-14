@@ -63,7 +63,170 @@ app.use("/login",require("./routes/login"));
 app.use("/reset-password",require("./routes/reset-password"));
 app.use("/chat",require("./routes/chat"));
 app.use("/reports",require("./routes/reports"));
-app.use("/admin-reports",require("./routes/admin-reports"));
+app.use("/maintenance", require("./routes/maintenance"));
+
+/*
+ * ULTRAAI MAINTENANCE MODE
+ * المستخدمون العاديون يتمنعو أثناء الصيانة
+ * Admin يبقى قادر يدخل
+ */
+app.use(async (req, res, next) => {
+
+    try {
+
+        /*
+         * هاد المسارات خاصها تبقى خدامة أثناء الصيانة
+         */
+        const allowed = [
+            "/maintenance",
+            "/admin-reports",
+            "/admin-broadcast",
+            "/admin-inbox"
+        ];
+
+        if (
+            allowed.some(path =>
+                req.path === path ||
+                req.path.startsWith(path + "/")
+            )
+        ) {
+            return next();
+        }
+
+        const kvUsers = require("./kv-users");
+
+        const kv = await kvUsers.getKV();
+
+        const result = await kv.get([
+            "ultraai",
+            "system",
+            "maintenance"
+        ]);
+
+        const maintenance = result.value;
+
+        if (!maintenance || maintenance.enabled !== true) {
+            return next();
+        }
+
+        /*
+         * التحقق واش المستخدم Admin
+         */
+        const header =
+            req.headers.authorization || "";
+
+        if (header.startsWith("Bearer ")) {
+
+            const token =
+                header.slice(7).trim();
+
+            if (token) {
+
+                const auth = require("./auth");
+
+                const user =
+                    await auth.getUserFromToken(token);
+
+                if (
+                    user &&
+                    String(user.id) ===
+                    String(process.env.ULTRAAI_ADMIN_ID)
+                ) {
+                    return next();
+                }
+            }
+        }
+
+        /*
+         * طلبات API
+         */
+        if (
+            req.path.startsWith("/api") ||
+            req.headers.accept?.includes("application/json") ||
+            req.method !== "GET"
+        ) {
+
+            return res.status(503).json({
+                success: false,
+                maintenance: true,
+                message:
+                    maintenance.message ||
+                    "🛠️ جاري الصيانة، المرجو المحاولة لاحقاً."
+            });
+        }
+
+        /*
+         * صفحات الموقع
+         */
+        return res.status(503).send(`
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>UltraAI - جاري الصيانة</title>
+<style>
+html,body{
+    margin:0;
+    min-height:100%;
+    font-family:Arial,sans-serif;
+    background:#0b1020;
+    color:white;
+}
+body{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+}
+.box{
+    max-width:520px;
+    padding:40px 24px;
+}
+.icon{
+    font-size:70px;
+    margin-bottom:20px;
+}
+h1{
+    margin:0 0 15px;
+    font-size:30px;
+}
+p{
+    color:#b8bfd3;
+    line-height:1.8;
+    font-size:17px;
+}
+</style>
+</head>
+<body>
+<div class="box">
+    <div class="icon">🛠️</div>
+    <h1>جاري الصيانة</h1>
+    <p>${
+        String(
+            maintenance.message ||
+            "نقوم حالياً بإجراء بعض التحسينات على UltraAI، المرجو المحاولة لاحقاً."
+        )
+    }</p>
+</div>
+</body>
+</html>
+        `);
+
+    } catch (error) {
+
+        console.error(
+            "MAINTENANCE MIDDLEWARE ERROR:",
+            error
+        );
+
+        /*
+         * إذا وقع خطأ في فحص الصيانة،
+         * ما نوقفوش التطبيق.
+         */
+        return next();
+    }
+});
 app.use("/admin-broadcast",require("./routes/admin-broadcast"));
 app.use("/admin-inbox",require("./routes/admin-inbox"));
 app.use("/conversations",require("./routes/conversations"));
