@@ -68,10 +68,26 @@ router.get("/random-username", async (req, res) => {
             const username =
                 `${prefix}${number}`;
 
-            const existing =
-                await kvUsers.findUserByUsername(
-                    username
+            let existing = null;
+
+            try {
+                existing =
+                    await kvUsers.findUserByUsername(
+                        username
+                    );
+            } catch (error) {
+
+                console.error(
+                    "RANDOM USERNAME CHECK ERROR:",
+                    error
                 );
+
+                /*
+                 * إذا تعذر فحص الاسم، ما نعطيوش
+                 * اسم ممكن يكون مستعمل.
+                 */
+                continue;
+            }
 
             if (!existing) {
 
