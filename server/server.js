@@ -54,29 +54,16 @@ app.use((req,res,next)=>{
 app.use(cors());
 app.use(express.json({limit:"6mb"}));
 
-app.use(express.static(path.join(__dirname,"..","public")));
-app.use("/files", express.static(path.join(__dirname,"uploads")));
-
-app.use("/register",require("./routes/register"));
-app.use("/send-otp", require("./routes/send-otp").router);
-app.use("/login",require("./routes/login"));
-app.use("/reset-password",require("./routes/reset-password"));
-app.use("/chat",require("./routes/chat"));
-app.use("/reports",require("./routes/reports"));
-app.use("/maintenance", require("./routes/maintenance"));
-
 /*
  * ULTRAAI MAINTENANCE MODE
- * المستخدمون العاديون يتمنعو أثناء الصيانة
- * Admin يبقى قادر يدخل
+ * خاص Middleware ديال الصيانة يجي قبل static files
+ * باش المستخدم العادي ما يقدرش يوصل للموقع أثناء الصيانة.
+ * Admin و /maintenance و Admin routes كيبقاو خدامين.
  */
 app.use(async (req, res, next) => {
 
     try {
 
-        /*
-         * هاد المسارات خاصها تبقى خدامة أثناء الصيانة
-         */
         const allowed = [
             "/maintenance",
             "/admin-reports",
@@ -85,16 +72,15 @@ app.use(async (req, res, next) => {
         ];
 
         if (
-            allowed.some(path =>
-                req.path === path ||
-                req.path.startsWith(path + "/")
+            allowed.some(route =>
+                req.path === route ||
+                req.path.startsWith(route + "/")
             )
         ) {
             return next();
         }
 
         const kvUsers = require("./kv-users");
-
         const kv = await kvUsers.getKV();
 
         const result = await kv.get([
@@ -110,7 +96,7 @@ app.use(async (req, res, next) => {
         }
 
         /*
-         * التحقق واش المستخدم Admin
+         * Admin يبقى قادر يستعمل التطبيق أثناء الصيانة.
          */
         const header =
             req.headers.authorization || "";
@@ -138,7 +124,7 @@ app.use(async (req, res, next) => {
         }
 
         /*
-         * طلبات API
+         * API / POST / PUT / DELETE...
          */
         if (
             req.path.startsWith("/api") ||
@@ -156,8 +142,16 @@ app.use(async (req, res, next) => {
         }
 
         /*
-         * صفحات الموقع
+         * صفحات الموقع.
          */
+        const maintenanceMessage =
+            String(
+                maintenance.message ||
+                "نقوم حالياً بإجراء بعض التحسينات على UltraAI، المرجو المحاولة لاحقاً."
+            )
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
         return res.status(503).send(`
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
@@ -165,6 +159,7 @@ app.use(async (req, res, next) => {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>UltraAI - جاري الصيانة</title>
+
 <style>
 html,body{
     margin:0;
@@ -173,24 +168,29 @@ html,body{
     background:#0b1020;
     color:white;
 }
+
 body{
     display:flex;
     align-items:center;
     justify-content:center;
     text-align:center;
 }
+
 .box{
     max-width:520px;
     padding:40px 24px;
 }
+
 .icon{
     font-size:70px;
     margin-bottom:20px;
 }
+
 h1{
     margin:0 0 15px;
     font-size:30px;
 }
+
 p{
     color:#b8bfd3;
     line-height:1.8;
@@ -198,17 +198,19 @@ p{
 }
 </style>
 </head>
+
 <body>
+
 <div class="box">
+
     <div class="icon">🛠️</div>
+
     <h1>جاري الصيانة</h1>
-    <p>${
-        String(
-            maintenance.message ||
-            "نقوم حالياً بإجراء بعض التحسينات على UltraAI، المرجو المحاولة لاحقاً."
-        )
-    }</p>
+
+    <p>${maintenanceMessage}</p>
+
 </div>
+
 </body>
 </html>
         `);
@@ -221,12 +223,24 @@ p{
         );
 
         /*
-         * إذا وقع خطأ في فحص الصيانة،
-         * ما نوقفوش التطبيق.
+         * إذا فشل KV، ما نوقفوش التطبيق.
          */
         return next();
     }
 });
+
+/*
+ * Static files خاصها تكون من بعد Maintenance Middleware.
+ */
+app.use(express.static(path.join(__dirname,"..","public")));
+app.use("/files", express.static(path.join(__dirname,"uploads")));
+
+app.use("/register",require("./routes/register"));
+app.use("/send-otp", require("./routes/send-otp").router);
+app.use("/login",require("./routes/login"));
+app.use("/reset-password",require("./routes/reset-password"));
+app.use("/chat",require("./routes/chat"));
+app.use("/reports",require("./routes/reports"));
 app.use("/admin-broadcast",require("./routes/admin-broadcast"));
 app.use("/admin-inbox",require("./routes/admin-inbox"));
 app.use("/conversations",require("./routes/conversations"));

@@ -1599,10 +1599,32 @@ document.addEventListener(
     "DOMContentLoaded",
     function () {
 
-        setTimeout(
-            addAdminMenuButton,
-            300
-        );
+        /*
+         * القائمة الجانبية كتتحمل ديناميكياً،
+         * لذلك نحاول أكثر من مرة حتى تظهر.
+         */
+        let attempts = 0;
+
+        const tryAddAdminButton = async () => {
+
+            attempts++;
+
+            await addAdminMenuButton();
+
+            if (
+                document.getElementById("adminMenuButton") ||
+                attempts >= 20
+            ) {
+                return;
+            }
+
+            setTimeout(
+                tryAddAdminButton,
+                300
+            );
+        };
+
+        tryAddAdminButton();
 
     }
 );

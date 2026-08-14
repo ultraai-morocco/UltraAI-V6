@@ -222,6 +222,17 @@ async function loadPage(page) {
                 loadAdminPage();
             }
 
+            setTimeout(() => {
+
+                if (
+                    typeof window.loadAdminMaintenance ===
+                    "function"
+                ) {
+                    window.loadAdminMaintenance();
+                }
+
+            }, 300);
+
         }
 
 
