@@ -217,6 +217,15 @@ async function loadPage(page) {
 
         /* GLOBAL CHAT */
 
+        /* ABOUT ULTRAAI */
+        if (page === "about") {
+            makeHeader(
+                "aboutHeader",
+                "حول UltraAI",
+                "معلومات عن التطبيق"
+            );
+        }
+
         if (page === "global") {
 
             makeHeader(

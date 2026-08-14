@@ -271,6 +271,10 @@ function createSideMenu(){
                     <span>⚙️</span>
                     <b>الإعدادات</b>
                 </button>
+                <button onclick="openFromMenu('about')">
+                    <span>ℹ️</span>
+                    <b>حول UltraAI</b>
+                </button>
 
             </nav>
 
