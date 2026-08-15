@@ -2,35 +2,41 @@ const root = document.getElementById("root");
 
 
 function makeHeader(target, title, subtitle = "") {
-    const el = document.getElementById(target);
-    if (!el) return;
+    let el = document.getElementById(target);
+
+    if (!el) {
+        el = document.createElement("header");
+        el.id = target;
+        el.className = "v6-header";
+
+        if (root) {
+            root.prepend(el);
+        } else {
+            document.body.prepend(el);
+        }
+    }
+
+    el.className = "v6-header";
 
     el.innerHTML = `
-        <header class="v6-header">
+        <button
+            class="v6-back"
+            type="button"
+            onclick="loadPage('home')">
+            ←
+        </button>
 
-            <button
-                class="v6-back"
-                type="button"
-                onclick="loadPage('home')">
-                ←
-            </button>
+        <div class="v6-header-title">
+            <strong>${title}</strong>
+            ${subtitle ? `<span>${subtitle}</span>` : ""}
+        </div>
 
-            <div class="v6-header-title">
-                <strong>${title}</strong>
-                ${
-                    subtitle
-                        ? `<span>${subtitle}</span>`
-                        : ""
-                }
-            </div>
-<button
-                class="v6-header-more"
-                type="button"
-                onclick="openPageMenu()">
-                ⋮
-            </button>
-
-        </header>
+        <button
+            class="v6-header-more"
+            type="button"
+            onclick="openPageMenu()">
+            ⋮
+        </button>
     `;
 }
 
