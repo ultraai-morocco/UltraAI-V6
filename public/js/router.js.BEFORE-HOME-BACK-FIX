@@ -2,27 +2,35 @@ const root = document.getElementById("root");
 
 
 function makeHeader(target, title, subtitle = "") {
-    let el = document.getElementById(target);
-
-    if (!el) {
-        el = document.createElement("header");
-        el.id = target;
-        el.className = "v6-header";
-
-        if (root) {
-            root.prepend(el);
-        } else {
-            document.body.prepend(el);
-        }
-    }
+    const el = document.getElementById(target);
+    if (!el) return;
 
     el.className = "v6-header";
 
     el.innerHTML = `
         <button
-            class="v6-back"
             type="button"
-            onclick="loadPage('home')">
+            onclick="loadPage('home')"
+            style="
+                display:flex !important;
+                align-items:center !important;
+                justify-content:center !important;
+                width:44px !important;
+                height:44px !important;
+                min-width:44px !important;
+                padding:0 !important;
+                margin:0 !important;
+                border:1px solid var(--border) !important;
+                border-radius:12px !important;
+                background:var(--surface) !important;
+                color:white !important;
+                font-size:26px !important;
+                line-height:1 !important;
+                visibility:visible !important;
+                opacity:1 !important;
+                position:relative !important;
+                z-index:99999 !important;
+            ">
             ←
         </button>
 
@@ -148,36 +156,6 @@ async function loadPage(page) {
 
             if (typeof initAI === "function") {
                 initAI();
-            }
-
-        }
-
-
-        /* IDEAS */
-        if (page === "ideas") {
-            makeHeader(
-                "ideasHeader",
-                "توليد الأفكار",
-                "اكتشف أفكاراً جديدة مع UltraAI"
-            );
-
-            if (typeof initIdeas === "function") {
-                initIdeas();
-            }
-        }
-
-        /* MY IDEAS */
-
-        if (page === "my-ideas") {
-
-            makeHeader(
-                "myIdeasHeader",
-                "أفكاري",
-                "الأفكار التي حفظتها"
-            );
-
-            if (typeof loadMyIdeas === "function") {
-                loadMyIdeas();
             }
 
         }

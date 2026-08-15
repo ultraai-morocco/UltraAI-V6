@@ -59,14 +59,6 @@ module.exports = {
 
   saveSettings(data) {
     write("settings.json", data);
-  },
-
-  loadIdeas() {
-    return read("ideas.json");
-  },
-
-  saveIdeas(data) {
-    write("ideas.json", data);
   }
 
 };

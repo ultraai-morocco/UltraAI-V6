@@ -1,0 +1,233 @@
+<header id="aboutHeader" class="v6-header"></header>
+
+<div class="about-page">
+
+    <div class="about-hero">
+        <div class="about-logo">U</div>
+        <h1>UltraAI</h1>
+        <p>مساعدك الذكي في مكان واحد</p>
+        <span class="about-version">الإصدار V6</span>
+    </div>
+
+    <section class="about-card">
+        <h2>🚀 ما هو UltraAI؟</h2>
+        <p>
+            UltraAI هو تطبيق يعتمد على الذكاء الاصطناعي لمساعدة المستخدم
+            في الحصول على المعلومات، الإجابة عن الأسئلة، التعلم، الكتابة،
+            حل المشاكل وإنجاز مجموعة من المهام اليومية.
+        </p>
+    </section>
+
+    <section class="about-card">
+        <h2>💡 لماذا تم إنشاء UltraAI؟</h2>
+        <p>
+            تم إنشاء UltraAI بهدف جعل أدوات الذكاء الاصطناعي أكثر سهولة
+            وفائدة للمستخدم، وتجميع مجموعة من الخدمات والميزات في تطبيق واحد.
+        </p>
+        <p>
+            UltraAI مشروع يتطور باستمرار، ويتم تطويره وإضافة ميزات جديدة
+            إليه بهدف تحسين تجربة المستخدم.
+        </p>
+    </section>
+
+    <section class="about-card">
+        <h2>🎯 ما هو هدف UltraAI؟</h2>
+        <p>
+            الهدف هو توفير مساعد ذكي يمكن للمستخدم الاستفادة منه في حياته
+            اليومية، الدراسة، العمل، البحث، الكتابة، التعلم، التفكير
+            وحل المشاكل.
+        </p>
+    </section>
+
+    <section class="about-card">
+        <h2>👥 لمن يصلح UltraAI؟</h2>
+
+        <div class="about-feature">
+            <span>🎓</span>
+            <div>
+                <strong>الطلاب والمتعلمون</strong>
+                <p>
+                    للمساعدة في فهم الدروس، البحث، التلخيص وطرح الأسئلة.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>💼</span>
+            <div>
+                <strong>أصحاب الأعمال</strong>
+                <p>
+                    للمساعدة في الأفكار، التخطيط، الكتابة وتنظيم العمل.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>✍️</span>
+            <div>
+                <strong>صناع المحتوى</strong>
+                <p>
+                    للمساعدة في إنشاء الأفكار والنصوص والمحتوى.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>🧠</span>
+            <div>
+                <strong>جميع المستخدمين</strong>
+                <p>
+                    للاستفادة من الذكاء الاصطناعي في الأسئلة والمهام اليومية.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-card">
+        <h2>⚡ ميزات UltraAI</h2>
+
+        <div class="about-feature">
+            <span>🤖</span>
+            <div>
+                <strong>الذكاء الاصطناعي AI</strong>
+                <p>
+                    طرح الأسئلة والدردشة مع الذكاء الاصطناعي والحصول على المساعدة.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>💬</span>
+            <div>
+                <strong>المحادثات</strong>
+                <p>
+                    حفظ المحادثات السابقة والرجوع إليها في أي وقت.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>🧠</span>
+            <div>
+                <strong>الذاكرة</strong>
+                <p>
+                    الوصول إلى المحادثات والمعلومات السابقة وتنظيمها.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>🌍</span>
+            <div>
+                <strong>الشات العالمي</strong>
+                <p>
+                    التواصل والمشاركة مع مستخدمي UltraAI الآخرين.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>📁</span>
+            <div>
+                <strong>الملفات</strong>
+                <p>
+                    مساحة مخصصة للتعامل مع الملفات داخل التطبيق.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>👤</span>
+            <div>
+                <strong>الحساب والملف الشخصي</strong>
+                <p>
+                    إدارة معلومات الحساب والملف الشخصي.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>⚙️</span>
+            <div>
+                <strong>الإعدادات</strong>
+                <p>
+                    التحكم في إعدادات وتجربة استخدام UltraAI.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>🔔</span>
+            <div>
+                <strong>الإشعارات</strong>
+                <p>
+                    استقبال التنبيهات والمعلومات المهمة من التطبيق.
+                </p>
+            </div>
+        </div>
+
+        <div class="about-feature">
+            <span>🔐</span>
+            <div>
+                <strong>الحساب والأمان</strong>
+                <p>
+                    التسجيل وتسجيل الدخول والتحقق من الحساب.
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <section class="about-card">
+        <h2>🌟 ماذا يقدم UltraAI للمستخدم؟</h2>
+
+        <p>يمكن استخدام UltraAI من أجل:</p>
+
+        <ul class="about-list">
+            <li>البحث عن المعلومات وفهم المواضيع.</li>
+            <li>التعلم والحصول على شرح مبسط.</li>
+            <li>المساعدة في الكتابة وإنشاء الأفكار.</li>
+            <li>حل المشاكل والأسئلة اليومية.</li>
+            <li>تنظيم والرجوع إلى المحادثات السابقة.</li>
+            <li>التواصل مع مجتمع مستخدمي UltraAI.</li>
+        </ul>
+    </section>
+
+    <section class="about-card">
+        <h2>🔮 مستقبل UltraAI</h2>
+        <p>
+            UltraAI ليس مشروعاً ثابتاً، بل يتم تطويره باستمرار.
+            سيتم العمل على إضافة ميزات وأدوات جديدة وتحسين الخدمات
+            الحالية بناءً على احتياجات المستخدمين.
+        </p>
+
+        <p class="about-note">
+            بعض الميزات قد تكون قيد التطوير أو قد تتغير مع تحديثات التطبيق.
+        </p>
+    </section>
+
+    <section class="about-card contact-card">
+        <h2>📩 تواصل معنا</h2>
+
+        <p>
+            لديك مشكلة؟ اقتراح؟ ملاحظة؟ أو تريد التواصل مع فريق UltraAI؟
+        </p>
+
+        <a
+            class="about-email"
+            href="mailto:support.ultraai@gmail.com"
+        >
+            📧 support.ultraai@gmail.com
+        </a>
+
+        <p class="about-contact-note">
+            يمكنك التواصل معنا بخصوص المشاكل، الاقتراحات،
+            الاستفسارات أو ملاحظاتك حول التطبيق.
+        </p>
+    </section>
+
+    <div class="about-footer">
+        <strong>UltraAI V6</strong>
+        <span>نجعل الذكاء الاصطناعي أكثر فائدة وسهولة.</span>
+    </div>
+
+</div>

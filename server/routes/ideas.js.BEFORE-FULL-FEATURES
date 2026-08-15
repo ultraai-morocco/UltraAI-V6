@@ -1,0 +1,108 @@
+const express = require("express");
+const router = express.Router();
+const Groq = require("groq-sdk");
+
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY
+});
+
+router.post("/", async (req, res) => {
+
+    try {
+
+        const {
+            category = "random",
+            language = "ar"
+        } = req.body || {};
+
+        const categories = {
+            projects: "مشاريع جديدة",
+            money: "أفكار للربح والدخل",
+            apps: "أفكار تطبيقات ومواقع",
+            content: "أفكار للمحتوى والسوشيال ميديا",
+            business: "أفكار التجارة والأعمال",
+            creative: "أفكار إبداعية ومبتكرة",
+            random: "فكرة عشوائية ومميزة"
+        };
+
+        const selected =
+            categories[category] || categories.random;
+
+        const prompt = `
+أنت مولد أفكار ذكي داخل تطبيق UltraAI.
+
+أعطني فكرة واحدة قوية ومميزة في مجال:
+${selected}
+
+أريد الإجابة بالعربية وبشكل واضح ومختصر.
+
+اكتب بهذا الشكل:
+
+💡 اسم الفكرة:
+[اسم قصير وجذاب]
+
+🎯 الفكرة:
+[شرح الفكرة]
+
+👥 لمن تناسب:
+[الفئة المستهدفة]
+
+💰 طريقة الربح:
+[كيف يمكن تحقيق دخل منها]
+
+🚀 كيف تبدأ:
+[3 خطوات عملية للبدء]
+
+⭐ لماذا قد تنجح:
+[سبب مختصر]
+
+لا تعطيني مقدمة ولا كلاماً خارج هذا التنسيق.
+`;
+
+        const completion =
+            await groq.chat.completions.create({
+                model: "llama-3.3-70b-versatile",
+                messages: [
+                    {
+                        role: "system",
+                        content:
+                            "أنت خبير في توليد أفكار المشاريع والتطبيقات والأعمال والمحتوى."
+                    },
+                    {
+                        role: "user",
+                        content: prompt
+                    }
+                ],
+                temperature: 1.1,
+                max_tokens: 700
+            });
+
+        const idea =
+            completion.choices?.[0]?.message?.content || "";
+
+        if (!idea) {
+            return res.status(500).json({
+                error: "لم يتم توليد فكرة"
+            });
+        }
+
+        res.json({
+            success: true,
+            idea
+        });
+
+    } catch (error) {
+
+        console.error(
+            "IDEAS ERROR:",
+            error
+        );
+
+        res.status(500).json({
+            error:
+                "تعذر توليد الفكرة حالياً"
+        });
+    }
+});
+
+module.exports = router;

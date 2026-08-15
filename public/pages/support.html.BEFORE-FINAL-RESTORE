@@ -1,0 +1,155 @@
+<header id="supportHeader" class="v6-header"></header>
+<div class="support-page">
+
+    <div class="support-hero">
+        <div class="support-icon">🆘</div>
+        <h1>المساعدة والدعم</h1>
+        <p>نحن هنا لمساعدتك في استخدام UltraAI</p>
+    </div>
+
+    <section class="support-card">
+        <h2>👋 كيف يمكننا مساعدتك؟</h2>
+
+        <p>
+            إذا واجهت مشكلة أثناء استخدام UltraAI، أو لديك سؤال أو اقتراح،
+            يمكنك أولاً الاطلاع على الأسئلة الشائعة الموجودة أسفله.
+        </p>
+
+        <p>
+            إذا لم تجد الإجابة التي تبحث عنها، يمكنك التواصل معنا مباشرة
+            عبر البريد الإلكتروني.
+        </p>
+    </section>
+
+    <section class="support-card">
+        <h2>❓ الأسئلة الشائعة</h2>
+
+        <details class="support-faq">
+            <summary>🤖 ما هو UltraAI؟</summary>
+            <p>
+                UltraAI هو تطبيق يعتمد على الذكاء الاصطناعي لمساعدتك في
+                الإجابة عن الأسئلة، التعلم، الكتابة، حل المشاكل والعديد
+                من المهام اليومية.
+            </p>
+        </details>
+
+        <details class="support-faq">
+            <summary>📝 كيف أنشئ حساباً؟</summary>
+            <p>
+                افتح صفحة التسجيل وأدخل المعلومات المطلوبة، ثم أكمل
+                عملية التحقق لإنشاء حسابك.
+            </p>
+        </details>
+
+        <details class="support-faq">
+            <summary>🎲 ما فائدة زر الاسم العشوائي؟</summary>
+            <p>
+                يمكنك استخدامه للحصول على اسم مستخدم عشوائي متاح،
+                بدلاً من اختيار الاسم يدوياً.
+            </p>
+        </details>
+
+        <details class="support-faq">
+            <summary>💬 أين أجد محادثاتي السابقة؟</summary>
+            <p>
+                يمكنك الوصول إلى المحادثات السابقة من قسم
+                «المحادثات» أو «الذاكرة» في القائمة الجانبية.
+            </p>
+        </details>
+
+        <details class="support-faq">
+            <summary>🌍 ما هو الشات العالمي؟</summary>
+            <p>
+                الشات العالمي يسمح لمستخدمي UltraAI بالتواصل ومشاركة
+                الرسائل مع مجتمع المستخدمين.
+            </p>
+        </details>
+
+        <details class="support-faq">
+            <summary>🗑️ كيف أحذف حسابي؟</summary>
+            <p>
+                إذا كانت ميزة حذف الحساب متاحة في إعدادات حسابك،
+                يمكنك استخدامها لطلب حذف الحساب والبيانات المرتبطة به.
+            </p>
+        </details>
+
+        <details class="support-faq">
+            <summary>🔐 نسيت كلمة المرور، ماذا أفعل؟</summary>
+            <p>
+                استخدم خيار «نسيت كلمة المرور» الموجود في صفحة تسجيل
+                الدخول واتبع خطوات استعادة الحساب.
+            </p>
+        </details>
+
+        <details class="support-faq">
+            <summary>📧 كيف أتواصل مع فريق UltraAI؟</summary>
+            <p>
+                يمكنك التواصل معنا عبر البريد الرسمي:
+            </p>
+
+            <a
+                class="support-email"
+                href="mailto:support.ultraai@gmail.com"
+            >
+                📧 support.ultraai@gmail.com
+            </a>
+        </details>
+    </section>
+
+    <section class="support-card">
+        <h2>🐞 الإبلاغ عن مشكلة</h2>
+
+        <p>
+            إذا وجدت مشكلة في التطبيق، حاول إرسال المعلومات التالية
+            عند التواصل معنا:
+        </p>
+
+        <ul class="support-list">
+            <li>وصف المشكلة بالتفصيل.</li>
+            <li>الصفحة أو الميزة التي حدثت فيها المشكلة.</li>
+            <li>الخطوات التي أدت إلى ظهور المشكلة.</li>
+            <li>صورة للشاشة إذا كانت مفيدة.</li>
+        </ul>
+
+        <p class="support-note">
+            لا ترسل كلمة المرور أو رموز التحقق أو معلومات بنكية عبر البريد.
+        </p>
+    </section>
+
+    <section class="support-card">
+        <h2>💡 إرسال اقتراح</h2>
+
+        <p>
+            هل لديك فكرة لميزة جديدة أو طريقة لتحسين UltraAI؟
+            نرحب باقتراحاتك.
+        </p>
+
+        <a
+            class="support-contact-button"
+            href="mailto:support.ultraai@gmail.com?subject=اقتراح%20لـ%20UltraAI"
+        >
+            💡 إرسال اقتراح
+        </a>
+    </section>
+
+    <section class="support-card">
+        <h2>📩 التواصل المباشر</h2>
+
+        <p>
+            للمشاكل والاستفسارات والاقتراحات:
+        </p>
+
+        <a
+            class="support-contact-button"
+            href="mailto:support.ultraai@gmail.com"
+        >
+            📧 تواصل مع UltraAI
+        </a>
+    </section>
+
+    <div class="support-footer">
+        <strong>UltraAI V6</strong>
+        <span>شكراً لاستخدامك UltraAI ❤️</span>
+    </div>
+
+</div>

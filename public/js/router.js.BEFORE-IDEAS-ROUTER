@@ -153,36 +153,6 @@ async function loadPage(page) {
         }
 
 
-        /* IDEAS */
-        if (page === "ideas") {
-            makeHeader(
-                "ideasHeader",
-                "توليد الأفكار",
-                "اكتشف أفكاراً جديدة مع UltraAI"
-            );
-
-            if (typeof initIdeas === "function") {
-                initIdeas();
-            }
-        }
-
-        /* MY IDEAS */
-
-        if (page === "my-ideas") {
-
-            makeHeader(
-                "myIdeasHeader",
-                "أفكاري",
-                "الأفكار التي حفظتها"
-            );
-
-            if (typeof loadMyIdeas === "function") {
-                loadMyIdeas();
-            }
-
-        }
-
-
         /* MEMORY */
 
         if (page === "memory") {

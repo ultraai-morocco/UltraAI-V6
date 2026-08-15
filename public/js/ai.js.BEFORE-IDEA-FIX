@@ -472,25 +472,6 @@ async function initAI(){
 
     if(!conversationId){
 
-        /*
-         * فكرة قادمة من صفحة الأفكار
-         */
-        const ideaToDevelop =
-            localStorage.getItem("ideaToDevelop");
-
-        if(ideaToDevelop){
-
-            localStorage.removeItem("ideaToDevelop");
-
-            input.value = ideaToDevelop;
-
-            setTimeout(() => {
-                sendQuestion();
-            }, 150);
-
-            return;
-        }
-
         messages.innerHTML = `
             <div class="ai-empty">
                 <div class="ai-empty-icon">🤖</div>

@@ -1,0 +1,96 @@
+<div class="ideas-page">
+
+    <div class="ideas-hero">
+        <div class="ideas-icon">💡</div>
+        <h1>توليد الأفكار</h1>
+        <p>خلّي UltraAI يفتح لك آفاقاً جديدة</p>
+    </div>
+
+    <section class="ideas-card">
+
+        <label>📝 في ماذا تريد أفكاراً؟</label>
+
+        <input
+            id="ideaTopic"
+            class="ideas-input"
+            type="text"
+            placeholder="مثلاً: مشروع من الهاتف، تطبيق، محتوى..."
+            maxlength="200"
+        >
+
+        <label>🎯 نوع الأفكار</label>
+
+        <div class="idea-types">
+
+            <button
+                type="button"
+                class="idea-type active"
+                data-type="general"
+                onclick="selectIdeaType('general', this)">
+                💡 عام
+            </button>
+
+            <button
+                type="button"
+                class="idea-type"
+                data-type="projects"
+                onclick="selectIdeaType('projects', this)">
+                🚀 مشاريع
+            </button>
+
+            <button
+                type="button"
+                class="idea-type"
+                data-type="content"
+                onclick="selectIdeaType('content', this)">
+                📣 محتوى
+            </button>
+
+        </div>
+
+        <label>🔢 عدد الأفكار</label>
+
+        <div class="idea-counts">
+
+            <button
+                type="button"
+                class="idea-count active"
+                onclick="selectIdeaCount(5, this)">
+                5
+            </button>
+
+            <button
+                type="button"
+                class="idea-count"
+                onclick="selectIdeaCount(10, this)">
+                10
+            </button>
+
+            <button
+                type="button"
+                class="idea-count"
+                onclick="selectIdeaCount(20, this)">
+                20
+            </button>
+
+        </div>
+
+        <button
+            type="button"
+            class="ideas-generate-btn"
+            onclick="generateIdeas()">
+
+            ✨ توليد الأفكار
+
+        </button>
+
+    </section>
+
+    <section
+        id="ideasResult"
+        class="ideas-results"
+        style="display:none;">
+
+    </section>
+
+</div>

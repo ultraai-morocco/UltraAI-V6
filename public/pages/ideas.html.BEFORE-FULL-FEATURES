@@ -1,0 +1,90 @@
+<div class="ideas-page">
+
+    <div class="ideas-hero">
+
+        <div class="ideas-icon">💡</div>
+
+        <h1>توليد الأفكار</h1>
+
+        <p>
+            احصل على أفكار جديدة ومبتكرة مع UltraAI
+        </p>
+
+    </div>
+
+    <div class="ideas-categories">
+
+        <button onclick="generateIdea('projects')">
+            🚀 مشاريع
+        </button>
+
+        <button onclick="generateIdea('money')">
+            💰 الربح
+        </button>
+
+        <button onclick="generateIdea('apps')">
+            📱 تطبيقات
+        </button>
+
+        <button onclick="generateIdea('content')">
+            📣 محتوى
+        </button>
+
+        <button onclick="generateIdea('business')">
+            🛒 تجارة
+        </button>
+
+        <button onclick="generateIdea('creative')">
+            🎨 إبداع
+        </button>
+
+    </div>
+
+    <button
+        class="ideas-random-btn"
+        onclick="generateIdea('random')">
+
+        🎲 ولّد فكرة عشوائية
+
+    </button>
+
+    <div
+        id="ideaResult"
+        class="idea-result">
+
+        <div class="idea-empty">
+
+            <div>💡</div>
+
+            <strong>
+                مستعد لفكرة جديدة؟
+            </strong>
+
+            <span>
+                اختر مجالاً أو اضغط على فكرة عشوائية
+            </span>
+
+        </div>
+
+    </div>
+
+    <div
+        id="ideaActions"
+        class="idea-actions"
+        style="display:none;">
+
+        <button onclick="copyIdea()">
+            📋 نسخ
+        </button>
+
+        <button onclick="generateIdea(currentIdeaCategory)">
+            🔄 فكرة أخرى
+        </button>
+
+        <button onclick="developIdea()">
+            🚀 تطوير الفكرة
+        </button>
+
+    </div>
+
+</div>

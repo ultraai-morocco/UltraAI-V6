@@ -1,0 +1,107 @@
+<div class="page my-ideas-page">
+
+    <div id="myIdeasHeader"></div>
+
+    <main class="my-ideas-content">
+
+        <div class="my-ideas-top">
+
+            <div>
+                <h2>💡 أفكاري</h2>
+                <p>الأفكار التي حفظتها في UltraAI</p>
+            </div>
+
+            <button
+                type="button"
+                onclick="loadMyIdeas()">
+                🔄 تحديث
+            </button>
+
+        </div>
+
+        <div class="my-ideas-stats">
+
+            <div class="my-ideas-stat">
+                <strong id="myIdeasTotal">0</strong>
+                <span>💡 كل الأفكار</span>
+            </div>
+
+            <div class="my-ideas-stat">
+                <strong id="myIdeasFavorites">0</strong>
+                <span>⭐ المفضلة</span>
+            </div>
+
+            <div class="my-ideas-stat">
+                <strong id="myIdeasProjects">0</strong>
+                <span>🚀 المشاريع</span>
+            </div>
+
+        </div>
+
+        <div class="my-ideas-filters">
+
+            <button
+                type="button"
+                class="my-ideas-filter active"
+                data-filter="all"
+                onclick="setMyIdeasFilter('all', this)">
+                الكل
+            </button>
+
+            <button
+                type="button"
+                class="my-ideas-filter"
+                data-filter="favorite"
+                onclick="setMyIdeasFilter('favorite', this)">
+                ⭐ المفضلة
+            </button>
+
+            <button
+                type="button"
+                class="my-ideas-filter"
+                data-filter="projects"
+                onclick="setMyIdeasFilter('projects', this)">
+                🚀 مشاريع
+            </button>
+
+            <button
+                type="button"
+                class="my-ideas-filter"
+                data-filter="content"
+                onclick="setMyIdeasFilter('content', this)">
+                📣 محتوى
+            </button>
+
+            <button
+                type="button"
+                class="my-ideas-filter"
+                data-filter="general"
+                onclick="setMyIdeasFilter('general', this)">
+                💡 عام
+            </button>
+
+        </div>
+
+        <div class="my-ideas-search">
+
+            <input
+                id="myIdeasSearch"
+                type="search"
+                placeholder="🔍 ابحث في أفكارك..."
+                oninput="filterMyIdeas()">
+
+        </div>
+
+        <div
+            id="myIdeasList"
+            class="my-ideas-list">
+
+            <div class="my-ideas-loading">
+                جاري تحميل أفكارك...
+            </div>
+
+        </div>
+
+    </main>
+
+</div>

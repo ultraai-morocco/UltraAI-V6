@@ -86,28 +86,6 @@
 
 
     <section class="home-cards">
-        <div
-            class="home-card"
-            onclick="loadPage('ideas')">
-            <div class="home-card-icon">💡</div>
-            <strong>توليد الأفكار</strong>
-            <span>اكتشف أفكاراً جديدة وطورها مع UltraAI</span>
-        </div>
-
-
-
-        <div
-            class="home-card"
-            onclick="loadPage('my-ideas')">
-
-            <div class="home-card-icon">⭐</div>
-
-            <strong>أفكاري</strong>
-
-            <span>الأفكار التي حفظتها</span>
-
-        </div>
-
 
         <div
             class="home-card"

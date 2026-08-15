@@ -1,0 +1,263 @@
+let myIdeas = [];
+
+async function loadMyIdeas() {
+
+    const list =
+        document.getElementById("myIdeasList");
+
+    if (!list) return;
+
+    list.innerHTML = `
+        <div class="my-ideas-loading">
+            جاري تحميل أفكارك...
+        </div>
+    `;
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) {
+
+        list.innerHTML = `
+            <div class="my-ideas-empty">
+                🔐 خاصك تسجل الدخول باش تشوف أفكارك.
+            </div>
+        `;
+
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch("/ideas-list", {
+                headers: {
+                    "Authorization":
+                        "Bearer " + token
+                }
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.message ||
+                "تعذر جلب الأفكار"
+            );
+        }
+
+        myIdeas =
+            Array.isArray(data.ideas)
+                ? data.ideas
+                : [];
+
+        renderMyIdeas();
+
+    } catch (error) {
+
+        console.error(
+            "My ideas error:",
+            error
+        );
+
+        list.innerHTML = `
+            <div class="my-ideas-error">
+                ❌ تعذر تحميل أفكارك
+                <button onclick="loadMyIdeas()">
+                    حاول مرة أخرى
+                </button>
+            </div>
+        `;
+    }
+}
+
+
+function renderMyIdeas() {
+
+    const list =
+        document.getElementById("myIdeasList");
+
+    if (!list) return;
+
+    const search =
+        document.getElementById("myIdeasSearch")
+            ?.value
+            .trim()
+            .toLowerCase() || "";
+
+    const filtered =
+        myIdeas.filter(idea => {
+
+            const title =
+                String(idea.title || "")
+                    .toLowerCase();
+
+            const description =
+                String(idea.description || "")
+                    .toLowerCase();
+
+            return (
+                !search ||
+                title.includes(search) ||
+                description.includes(search)
+            );
+
+        });
+
+    if (!filtered.length) {
+
+        list.innerHTML = `
+            <div class="my-ideas-empty">
+                💡 لا توجد أفكار محفوظة.
+            </div>
+        `;
+
+        return;
+    }
+
+    list.innerHTML =
+        filtered.map(idea => {
+
+            const originalIndex =
+                myIdeas.indexOf(idea);
+
+            return `
+                <article class="my-idea-item">
+
+                    <div class="my-idea-number">
+                        ${originalIndex + 1}
+                    </div>
+
+                    <div class="my-idea-body">
+
+                        <strong>
+                            ${escapeMyIdea(idea.title)}
+                        </strong>
+
+                        <p>
+                            ${escapeMyIdea(idea.description)}
+                        </p>
+
+                        <small>
+                            ${formatMyIdeaDate(idea.createdAt)}
+                        </small>
+
+                        <div class="my-idea-actions">
+
+                            <button
+                                onclick="copyMyIdea(${originalIndex})">
+                                📋 نسخ
+                            </button>
+
+                            <button
+                                onclick="developMyIdea(${originalIndex})">
+                                🚀 طوّر
+                            </button>
+
+                        </div>
+
+                    </div>
+
+                </article>
+            `;
+
+        }).join("");
+}
+
+
+function filterMyIdeas() {
+    renderMyIdeas();
+}
+
+
+function copyMyIdea(index) {
+
+    const idea = myIdeas[index];
+
+    if (!idea) return;
+
+    const text =
+        `${idea.title}\n\n${idea.description}`;
+
+    navigator.clipboard
+        .writeText(text)
+        .then(() => {
+            alert("تم نسخ الفكرة ✅");
+        })
+        .catch(() => {
+            alert("تعذر النسخ");
+        });
+}
+
+
+function developMyIdea(index) {
+
+    const idea = myIdeas[index];
+
+    if (!idea) return;
+
+    const text =
+        `أريد تطوير هذه الفكرة بشكل كامل:
+
+اسم الفكرة:
+${idea.title}
+
+الفكرة:
+${idea.description}
+
+قم بتحليلها وتطويرها إلى خطة عملية تشمل:
+- الجمهور المستهدف
+- طريقة التنفيذ
+- المميزات
+- طريقة الربح
+- التكاليف المحتملة
+- خطوات البدء
+- المخاطر والحلول`;
+
+    localStorage.setItem(
+        "ideaToDevelop",
+        text
+    );
+
+    localStorage.removeItem(
+        "activeConversationId"
+    );
+
+    localStorage.removeItem(
+        "activeConversationMessages"
+    );
+
+    loadPage("ai");
+}
+
+
+function escapeMyIdea(text) {
+
+    return String(text || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+function formatMyIdeaDate(date) {
+
+    if (!date) return "";
+
+    try {
+
+        return new Date(date)
+            .toLocaleDateString("ar-MA", {
+                year: "numeric",
+                month: "long",
+                day: "numeric"
+            });
+
+    } catch {
+
+        return "";
+    }
+}

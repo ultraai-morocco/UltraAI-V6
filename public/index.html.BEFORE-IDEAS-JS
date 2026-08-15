@@ -31,8 +31,6 @@
 <script src="js/settings.js"></script>
 <script src="js/global.js"></script>
 <script src="js/files.js"></script>
-<script src="js/ideas.js"></script>
-<script src="js/my-ideas.js"></script>
 <script src="js/app.js"></script>
 
 </body>

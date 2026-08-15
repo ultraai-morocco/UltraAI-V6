@@ -1,0 +1,139 @@
+let currentIdea = "";
+let currentIdeaCategory = "random";
+
+async function generateIdea(category = "random") {
+
+    const result =
+        document.getElementById("ideaResult");
+
+    const actions =
+        document.getElementById("ideaActions");
+
+    if (!result) return;
+
+    currentIdeaCategory = category;
+
+    result.innerHTML = `
+        <div class="idea-loading">
+            <div class="idea-spinner">✨</div>
+            <strong>جاري توليد فكرة...</strong>
+            <span>UltraAI يفكر في شيء مميز لك</span>
+        </div>
+    `;
+
+    if (actions) {
+        actions.style.display = "none";
+    }
+
+    try {
+
+        const token =
+            localStorage.getItem("token");
+
+        const response =
+            await fetch("/ideas", {
+                method: "POST",
+                headers: {
+                    "Content-Type":
+                        "application/json",
+                    ...(token
+                        ? {
+                            "Authorization":
+                                "Bearer " + token
+                        }
+                        : {})
+                },
+                body: JSON.stringify({
+                    category,
+                    language: "ar"
+                })
+            });
+
+        const data =
+            await response.json();
+
+        if (!response.ok) {
+            throw new Error(
+                data.error ||
+                "تعذر توليد الفكرة"
+            );
+        }
+
+        currentIdea =
+            data.idea || "";
+
+        result.innerHTML = `
+            <div class="idea-content">
+                ${formatIdea(currentIdea)}
+            </div>
+        `;
+
+        if (actions) {
+            actions.style.display = "flex";
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Ideas error:",
+            error
+        );
+
+        result.innerHTML = `
+            <div class="idea-error">
+                ❌ تعذر توليد الفكرة حالياً
+                <button onclick="generateIdea('${category}')">
+                    حاول مرة أخرى
+                </button>
+            </div>
+        `;
+    }
+}
+
+function formatIdea(text) {
+
+    const escaped =
+        text
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;");
+
+    return escaped
+        .replace(/\n/g, "<br>")
+        .replace(
+            /(💡 اسم الفكرة:|🎯 الفكرة:|👥 لمن تناسب:|💰 طريقة الربح:|🚀 كيف تبدأ:|⭐ لماذا قد تنجح:)/g,
+            "<strong class='idea-section'>$1</strong>"
+        );
+}
+
+async function copyIdea() {
+
+    if (!currentIdea) return;
+
+    try {
+
+        await navigator.clipboard.writeText(
+            currentIdea
+        );
+
+        alert("تم نسخ الفكرة ✅");
+
+    } catch {
+
+        alert("تعذر النسخ");
+    }
+}
+
+function developIdea() {
+
+    if (!currentIdea) return;
+
+    localStorage.setItem(
+        "ideaToDevelop",
+        currentIdea
+    );
+
+    loadPage("ai");
+}
+
+
