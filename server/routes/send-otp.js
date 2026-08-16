@@ -1,21 +1,31 @@
 const express = require("express");
+const crypto = require("crypto");
 const router = express.Router();
 
 const { sendOTP } = require("../email");
 
 /*
- * OTP storage
+ * OTP SECURITY
  *
  * Deno Deploy:
  *   Deno KV
  *
  * Termux / Node:
  *   RAM fallback
+ *
+ * Security:
+ *   - cryptographically secure OTP
+ *   - 10 minute expiration
+ *   - maximum verification attempts
+ *   - resend cooldown
  */
 
 const codes = {};
-
 let kvPromise = null;
+
+const OTP_TTL = 10 * 60 * 1000;
+const RESEND_COOLDOWN = 60 * 1000;
+const MAX_ATTEMPTS = 5;
 
 async function getKV() {
     if (
@@ -32,17 +42,28 @@ async function getKV() {
     return await kvPromise;
 }
 
-async function saveOTP(email, data) {
+function normalizeEmail(email) {
+    return String(email || "")
+        .trim()
+        .toLowerCase();
+}
 
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function createOTP() {
+    return crypto.randomInt(100000, 1000000).toString();
+}
+
+async function saveOTP(email, data) {
     const kv = await getKV();
 
     if (kv) {
-
         await kv.set(
             ["ultraai", "otp", email],
             data
         );
-
         return;
     }
 
@@ -50,11 +71,9 @@ async function saveOTP(email, data) {
 }
 
 async function getOTP(email) {
-
     const kv = await getKV();
 
     if (kv) {
-
         const result = await kv.get(
             ["ultraai", "otp", email]
         );
@@ -66,105 +85,109 @@ async function getOTP(email) {
 }
 
 async function deleteOTP(email) {
-
     const kv = await getKV();
 
     if (kv) {
-
         await kv.delete(
             ["ultraai", "otp", email]
         );
-
         return;
     }
 
     delete codes[email];
 }
 
-
 router.post("/", async (req, res) => {
-
     try {
-
-        const email =
-            String(req.body.email || "")
-                .trim()
-                .toLowerCase();
+        const email = normalizeEmail(req.body.email);
 
         if (!email) {
-
-            return res.json({
+            return res.status(400).json({
                 success: false,
                 message: "البريد الإلكتروني مطلوب"
             });
-
         }
 
-        const code =
-            Math.floor(
-                100000 +
-                Math.random() * 900000
-            ).toString();
+        if (!isValidEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "البريد الإلكتروني غير صالح"
+            });
+        }
+
+        const existing = await getOTP(email);
+
+        /*
+         * Prevent repeated OTP requests.
+         */
+        if (
+            existing &&
+            existing.createdAt &&
+            Date.now() - existing.createdAt < RESEND_COOLDOWN
+        ) {
+            const remaining = Math.ceil(
+                (
+                    RESEND_COOLDOWN -
+                    (Date.now() - existing.createdAt)
+                ) / 1000
+            );
+
+            return res.status(429).json({
+                success: false,
+                message: `انتظر ${remaining} ثانية قبل طلب رمز جديد`
+            });
+        }
+
+        const code = createOTP();
 
         const data = {
-
             code,
-
-            expires:
-                Date.now() +
-                10 * 60 * 1000
-
+            createdAt: Date.now(),
+            expires: Date.now() + OTP_TTL,
+            attempts: 0
         };
 
         await saveOTP(email, data);
 
         try {
-
             await sendOTP(email, code);
-
-        } catch (e) {
-
+        } catch (error) {
             await deleteOTP(email);
 
-            throw e;
+            console.error(
+                "SEND OTP EMAIL ERROR:",
+                error.message
+            );
+
+            return res.status(500).json({
+                success: false,
+                message: "فشل إرسال البريد"
+            });
         }
 
         return res.json({
-
             success: true,
-
             message: "تم إرسال رمز التحقق"
-
         });
 
-    } catch (e) {
-
+    } catch (error) {
         console.error(
             "SEND OTP ERROR:",
-            e
+            error.message
         );
 
-        return res.json({
-
+        return res.status(500).json({
             success: false,
-
-            message: "فشل إرسال البريد"
-
+            message: "حدث خطأ أثناء إرسال رمز التحقق"
         });
-
     }
-
 });
 
-
 module.exports = {
-
     router,
-
     codes,
-
     getOTP,
-
-    deleteOTP
-
+    saveOTP,
+    deleteOTP,
+    MAX_ATTEMPTS
 };

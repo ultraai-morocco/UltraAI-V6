@@ -389,6 +389,14 @@ p{
  * STATIC FILES
  * كيتحمل الموقع من بعد فحص الصيانة
  */
+app.get("/terms", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "terms.html"));
+});
+
+app.get("/privacy-policy", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "privacy-policy.html"));
+});
+
 app.use(express.static(path.join(__dirname,"..","public")));
 
 app.use("/admin-reports", require("./routes/admin-reports"));

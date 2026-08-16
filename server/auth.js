@@ -1,12 +1,22 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const SECRET =
-    process.env.ULTRAAI_JWT_SECRET ||
-    "UltraAI_SECRET_KEY";
+const SECRET = process.env.ULTRAAI_JWT_SECRET;
+
+if (!SECRET) {
+    throw new Error(
+        "ULTRAAI_JWT_SECRET is required. Set it in server/.env before starting UltraAI."
+    );
+}
+
+if (SECRET.length < 32) {
+    throw new Error(
+        "ULTRAAI_JWT_SECRET must be at least 32 characters long."
+    );
+}
 
 function hashPassword(password) {
-    return bcrypt.hashSync(String(password), 10);
+    return bcrypt.hashSync(String(password), 12);
 }
 
 function checkPassword(password, hash) {
@@ -31,36 +41,20 @@ async function getUserFromToken(token) {
     try {
         const decoded = jwt.verify(token, SECRET);
 
-        /*
-         * Deno Deploy:
-         * نستعمل Deno KV.
-         *
-         * Termux / Node:
-         * إذا KV غير متوفر، نستعمل users.json
-         * حتى تبقى لوحة الإدارة خدامة أثناء التجربة المحلية.
-         */
-
         try {
             const kvUsers = require("./kv-users");
             const user = await kvUsers.findUserById(decoded.id);
 
             if (user) {
-                if (user.banned === true) {
-                    return null;
-                }
-
-                return user;
+                return user.banned === true ? null : user;
             }
         } catch (kvError) {
             console.log(
-                "⚠️ KV unavailable, using users.json fallback:",
+                "KV unavailable, using users.json fallback:",
                 kvError.message
             );
         }
 
-        /*
-         * Fallback لـ Termux / Node
-         */
         const fs = require("fs");
         const path = require("path");
 
@@ -71,19 +65,12 @@ async function getUserFromToken(token) {
         );
 
         if (!fs.existsSync(usersFile)) {
-            console.log(
-                "❌ users.json not found:",
-                usersFile
-            );
             return null;
         }
 
-        const raw = fs.readFileSync(
-            usersFile,
-            "utf8"
+        const users = JSON.parse(
+            fs.readFileSync(usersFile, "utf8")
         );
-
-        const users = JSON.parse(raw);
 
         if (!Array.isArray(users)) {
             return null;
@@ -93,22 +80,14 @@ async function getUserFromToken(token) {
             u => String(u.id) === String(decoded.id)
         );
 
-        if (!user) {
-            return null;
-        }
-
-        if (user.banned === true) {
+        if (!user || user.banned === true) {
             return null;
         }
 
         return user;
 
     } catch (error) {
-        console.log(
-            "JWT / USER ERROR:",
-            error.message
-        );
-
+        console.log("JWT / USER ERROR:", error.message);
         return null;
     }
 }
@@ -124,15 +103,12 @@ function verifyToken(token) {
 async function isUserBanned(userId) {
     try {
         const kvUsers = require("./kv-users");
-
-        const user =
-            await kvUsers.findUserById(userId);
+        const user = await kvUsers.findUserById(userId);
 
         return !!(
             user &&
             user.banned === true
         );
-
     } catch {
         return false;
     }
