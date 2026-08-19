@@ -405,6 +405,19 @@ app.get("/refund", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/pages/refund.html"));
 });
 
+
+/*
+ * STATIC FILES + HOME PAGE
+ * ضروريين للـ Deno Deploy والـ Web App
+ */
+app.use(express.static(path.join(__dirname, "..", "public")));
+
+app.get("/", (req, res) => {
+    res.sendFile(
+        path.join(__dirname, "..", "public", "index.html")
+    );
+});
+
 const PORT = process.env.PORT || 8000;
 
 if (require.main === module) {
