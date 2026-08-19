@@ -375,6 +375,10 @@ async function startPaddlePremium() {
             token: config.clientToken
         });
 
+        console.log("PADDLE DEBUG: initialized");
+        console.log("PADDLE DEBUG: environment =", config.environment);
+        console.log("PADDLE DEBUG: priceId =", "pri_01m0d1yhdb1ayw1cgtbgxm28sc");
+
         Paddle.Checkout.open({
             items: [
                 {
@@ -384,6 +388,8 @@ async function startPaddlePremium() {
                 }
             ]
         });
+
+        console.log("PADDLE DEBUG: Checkout.open called");
 
     } catch (error) {
 
