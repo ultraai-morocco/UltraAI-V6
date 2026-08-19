@@ -109,10 +109,7 @@ app.use(async (req, res, next) => {
             req.path === "/pages/welcome.html" ||
             req.path === "/pages/login.html" ||
             req.path === "/pages/register.html" ||
-            req.path === "/pages/forgot-password.html" ||
-            req.path === "/terms" ||
-            req.path === "/privacy" ||
-            req.path === "/refund"
+            req.path === "/pages/forgot-password.html"
         ) {
             return next();
         }
@@ -392,40 +389,78 @@ p{
  * STATIC FILES
  * كيتحمل الموقع من بعد فحص الصيانة
  */
-
 app.get("/terms", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/pages/terms.html"));
+    res.sendFile(path.join(__dirname, "..", "public", "terms.html"));
 });
 
-app.get("/privacy", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/pages/privacy.html"));
+app.get("/privacy-policy", (req, res) => {
+    res.sendFile(path.join(__dirname, "..", "public", "privacy-policy.html"));
 });
 
-app.get("/refund", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/pages/refund.html"));
-});
+app.use(express.static(path.join(__dirname,"..","public")));
+
+app.use("/admin-reports", require("./routes/admin-reports"));
+app.use("/admin-broadcast", require("./routes/admin-broadcast"));
+app.use("/admin-inbox", require("./routes/admin-inbox"));
+
+app.use("/conversations", require("./routes/conversations"));
+app.use("/conversations-list", require("./routes/conversations-list"));
+app.use("/delete-conversation", require("./routes/delete-conversation"));
+app.use("/privacy", require("./routes/privacy"));
+app.use("/profile", require("./routes/profile"));
+app.use("/notifications", require("./routes/notifications"));
+app.use("/update-profile", require("./routes/update-profile"));
+app.use("/delete-account", require("./routes/delete-account"));
+app.use("/chat-image", require("./routes/chat-image"));
+app.use("/history", require("./routes/history"));
+app.use("/global-chat", require("./routes/global-chat"));
+app.use("/chat", require("./routes/chat"));
+app.use("/ai-chat", require("./routes/ai-chat"));
+app.use("/ideas", require("./routes/ideas"));
+app.use("/ideas", require("./routes/ideas"));
+app.use("/auto-content", require("./routes/auto-content"));
+app.use("/ideas-save", require("./routes/ideas-save"));
+app.use("/ideas-list", require("./routes/ideas-list"));
+app.use("/ideas-delete", require("./routes/ideas-delete"));
+app.use("/ideas-update", require("./routes/ideas-update"));
+app.use("/ai-history", require("./routes/ai-history"));
+app.use("/files-api", require("./routes/files"));
 
 
-/*
- * STATIC FILES + HOME PAGE
- * ضروريين للـ Deno Deploy والـ Web App
- */
-app.use(express.static(path.join(__dirname, "..", "public")));
 
-app.get("/", (req, res) => {
+app.get("/",(req,res)=>{
+
     res.sendFile(
-        path.join(__dirname, "..", "public", "index.html")
+        path.join(
+            __dirname,
+            "..",
+            "public",
+            "index.html"
+        )
     );
+
 });
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 3000;
 
 if (require.main === module) {
+
     app.listen(PORT, "0.0.0.0", () => {
-        console.log("🚀 UltraAI Server Started");
-        console.log("🌍 Server listening on port " + PORT);
+
+        console.log("=================================");
+
+        console.log(
+            "🚀 UltraAI Server Started"
+        );
+
+        console.log(
+            "🌍 Server listening on port " + PORT
+        );
+
+        console.log("=================================");
+
     });
+
 }
 
 module.exports = app;
-

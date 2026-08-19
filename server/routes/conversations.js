@@ -60,9 +60,9 @@ function getUser(req) {
    GET - جميع المحادثات
 ========================= */
 
-router.get("/", (req, res) => {
+router.get("/", async (req, res) => {
 
-    const user = getUser(req);
+    const user = await getUser(req);
 
     if (!user) {
 
@@ -95,9 +95,9 @@ router.get("/", (req, res) => {
    POST - إنشاء محادثة
 ========================= */
 
-router.post("/", (req, res) => {
+router.post("/", async (req, res) => {
 
-    const user = getUser(req);
+    const user = await getUser(req);
 
     if (!user) {
 
@@ -152,9 +152,9 @@ router.post("/", (req, res) => {
    PATCH - تعديل اسم المحادثة
 ========================= */
 
-router.patch("/:id", (req, res) => {
+router.patch("/:id", async (req, res) => {
 
-    const user = getUser(req);
+    const user = await getUser(req);
 
     if (!user) {
 

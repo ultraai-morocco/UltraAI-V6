@@ -2442,8 +2442,8 @@ button{
 
 .ai-page #imagePreview{
     position:fixed;
-    left:10px;
-    bottom:68px;
+    left:18px;
+    bottom:115px;
     width:60px;
     height:60px;
     padding:4px;
@@ -2540,8 +2540,8 @@ button{
     }
 
     .ai-page #imagePreview{
-        left:8px;
-        bottom:64px;
+        left:18px;
+        bottom:115px;
         width:58px;
         height:58px;
     }
@@ -5876,4 +5876,205 @@ button{
         min-width: 100px;
     }
 
+}
+
+
+/* =================================================
+   AUTO CONTENT
+================================================= */
+
+.auto-content-page {
+    width: 100%;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 25px 18px 60px;
+    box-sizing: border-box;
+}
+
+.auto-content-hero {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.auto-content-icon {
+    font-size: 52px;
+    margin-bottom: 10px;
+}
+
+.auto-content-hero h1 {
+    margin: 0;
+    font-size: 28px;
+}
+
+.auto-content-hero p {
+    margin: 10px 0 0;
+    opacity: .7;
+}
+
+.auto-content-card {
+    padding: 22px;
+    border-radius: 20px;
+    margin-bottom: 22px;
+}
+
+.auto-content-card label {
+    display: block;
+    margin: 15px 0 8px;
+    font-weight: 700;
+}
+
+.auto-content-input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 15px;
+    border-radius: 13px;
+    border: 1px solid rgba(255,255,255,.12);
+    background: rgba(255,255,255,.05);
+    color: inherit;
+    outline: none;
+    font-size: 15px;
+}
+
+.auto-content-input:focus {
+    border-color: rgba(255,255,255,.3);
+}
+
+.auto-content-generate-btn {
+    width: 100%;
+    margin-top: 20px;
+    padding: 15px;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.auto-content-results {
+    margin-top: 25px;
+}
+
+.auto-content-results-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    margin-bottom: 18px;
+}
+
+.auto-content-results-header strong {
+    display: block;
+    font-size: 20px;
+}
+
+.auto-content-results-header span {
+    display: block;
+    opacity: .65;
+    margin-top: 5px;
+}
+
+.auto-content-results-header button {
+    padding: 10px 14px;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.auto-content-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 18px;
+}
+
+.auto-post-card {
+    padding: 20px;
+    border-radius: 20px;
+    border: 1px solid rgba(255,255,255,.08);
+}
+
+.auto-post-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 18px;
+    margin-bottom: 18px;
+}
+
+.auto-post-header span {
+    font-size: 26px;
+}
+
+.auto-post-section {
+    margin-bottom: 17px;
+}
+
+.auto-post-section small {
+    display: block;
+    opacity: .55;
+    margin-bottom: 6px;
+}
+
+.auto-post-section strong {
+    display: block;
+    line-height: 1.6;
+}
+
+.auto-post-section p {
+    margin: 0;
+    line-height: 1.8;
+}
+
+.auto-script {
+    white-space: pre-wrap;
+}
+
+.auto-copy-btn {
+    width: 100%;
+    padding: 12px;
+    border: 0;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 700;
+}
+
+.auto-content-loading,
+.auto-content-error {
+    text-align: center;
+    padding: 35px 20px;
+    border-radius: 18px;
+}
+
+.auto-loading-icon {
+    font-size: 42px;
+    margin-bottom: 12px;
+}
+
+.auto-content-loading strong,
+.auto-content-loading span {
+    display: block;
+}
+
+.auto-content-loading span {
+    opacity: .65;
+    margin-top: 8px;
+}
+
+.auto-content-error button {
+    display: block;
+    margin: 15px auto 0;
+    padding: 10px 18px;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+@media (max-width: 700px) {
+
+    .auto-content-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .auto-content-results-header {
+        align-items: flex-start;
+    }
 }
