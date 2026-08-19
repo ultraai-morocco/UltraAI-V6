@@ -161,6 +161,52 @@ async function loadPage(page) {
         window.scrollTo(0, 0);
 
 
+
+        /* AUTO CONTENT */
+
+        if (page === "auto-content") {
+
+            const oldScript =
+                document.getElementById("autoContentScript");
+
+            if (oldScript) {
+                oldScript.remove();
+            }
+
+            await new Promise((resolve, reject) => {
+
+                const script =
+                    document.createElement("script");
+
+                script.id =
+                    "autoContentScript";
+
+                script.src =
+                    "/js/auto-content.js?v=20260819-final";
+
+                script.onload = () => {
+                    console.log(
+                        "✅ AUTO CONTENT JS LOADED"
+                    );
+                    resolve();
+                };
+
+                script.onerror = () => {
+                    console.error(
+                        "❌ AUTO CONTENT JS FAILED"
+                    );
+                    reject(
+                        new Error(
+                            "Failed to load auto-content.js"
+                        )
+                    );
+                };
+
+                document.body.appendChild(script);
+            });
+
+        }
+
         /* AI */
 
         if (page === "ai") {
