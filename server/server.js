@@ -53,6 +53,9 @@ app.use((req,res,next)=>{
 
 app.use(cors());
 app.use(express.json({limit:"6mb"}));
+app.use("/paddle/config", require("./routes/paddle-config"));
+app.use("/paddle/webhook", require("./routes/paddle-webhook"));
+
 
 app.use("/login",require("./routes/login"));
 app.use("/register",require("./routes/register"));

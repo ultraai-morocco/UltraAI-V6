@@ -325,3 +325,84 @@ function parseJwtPayload(token) {
         return null;
     }
 }
+
+async function startPaddlePremium() {
+    const button = document.getElementById("paddlePremiumButton");
+
+    try {
+        if (button) {
+            button.disabled = true;
+            button.textContent = "جاري التحضير...";
+        }
+
+        const response = await fetch("/paddle/config");
+
+        if (!response.ok) {
+            throw new Error("تعذر الاتصال بإعدادات Paddle");
+        }
+
+        const config = await response.json();
+
+        if (!config.success || !config.clientToken) {
+            throw new Error(
+                config.message || "Paddle غير مضبوط"
+            );
+        }
+
+        if (!window.Paddle) {
+            await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+
+                script.src =
+                    "https://cdn.paddle.com/paddle/v2/paddle.js";
+
+                script.onload = resolve;
+
+                script.onerror = () =>
+                    reject(
+                        new Error("تعذر تحميل Paddle")
+                    );
+
+                document.head.appendChild(script);
+            });
+        }
+
+        if (config.environment === "sandbox") {
+            Paddle.Environment.set("sandbox");
+        }
+
+        Paddle.Initialize({
+            token: config.clientToken
+        });
+
+        Paddle.Checkout.open({
+            items: [
+                {
+                    priceId:
+                        "pri_01m0d1yhdb1ayw1cgtbgxm28sc",
+                    quantity: 1
+                }
+            ]
+        });
+
+    } catch (error) {
+
+        console.error(
+            "PADDLE CHECKOUT ERROR:",
+            error
+        );
+
+        alert(
+            "تعذر فتح صفحة الاشتراك:\n" +
+            (error.message || "خطأ غير معروف")
+        );
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = "اشتراك Premium";
+        }
+    }
+}
+
