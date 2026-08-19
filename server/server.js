@@ -109,7 +109,10 @@ app.use(async (req, res, next) => {
             req.path === "/pages/welcome.html" ||
             req.path === "/pages/login.html" ||
             req.path === "/pages/register.html" ||
-            req.path === "/pages/forgot-password.html"
+            req.path === "/pages/forgot-password.html" ||
+            req.path === "/terms" ||
+            req.path === "/privacy" ||
+            req.path === "/refund"
         ) {
             return next();
         }
