@@ -133,6 +133,31 @@ async function loadPage(page) {
 
         root.innerHTML = await response.text();
 
+        /*
+         * AUTO CONTENT / TIKTOK
+         * Pages are loaded with innerHTML, so scripts inside
+         * the HTML page do not execute automatically.
+         * Load auto-content.js explicitly after the page is inserted.
+         */
+        if (page === "auto-content") {
+            const oldScript = document.getElementById("autoContentScript");
+            if (oldScript) {
+                oldScript.remove();
+            }
+
+            const script = document.createElement("script");
+            script.id = "autoContentScript";
+            script.src = "/js/auto-content.js?v=20260819";
+            script.onload = () => {
+                console.log("✅ auto-content.js loaded");
+            };
+            script.onerror = () => {
+                console.error("❌ Failed to load auto-content.js");
+            };
+
+            document.body.appendChild(script);
+        }
+
         window.scrollTo(0, 0);
 
 
