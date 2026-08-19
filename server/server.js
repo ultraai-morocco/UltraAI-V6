@@ -405,5 +405,14 @@ app.get("/refund", (req, res) => {
   res.sendFile(path.join(__dirname, "../public/pages/refund.html"));
 });
 
+const PORT = process.env.PORT || 8000;
+
+if (require.main === module) {
+    app.listen(PORT, "0.0.0.0", () => {
+        console.log("🚀 UltraAI Server Started");
+        console.log("🌍 Server listening on port " + PORT);
+    });
+}
+
 module.exports = app;
 
