@@ -329,329 +329,35 @@ function parseJwtPayload(token) {
 async function startPaddlePremium() {
     const button = document.getElementById("paddlePremiumButton");
 
-    const PRICE_ID = "pri_01m0d1yhdb1ayw1cgtbgxm28sc";
+    const HOSTED_CHECKOUT_URL =
+        "https://sandbox-pay.paddle.io/hsc_01m0fanc4cj7pxpwwdmr5bq7me_sc9zrg8d6q5zmp6sa79s7azs50mvkvyk";
 
     try {
         if (button) {
             button.disabled = true;
-            button.textContent = "جاري التحضير...";
+            button.textContent = "جاري فتح الدفع...";
         }
 
-        console.log("========== PADDLE CHECKOUT START ==========");
+        console.log("========== PADDLE HOSTED CHECKOUT ==========");
+        console.log("Opening Hosted Checkout...");
 
-        /*
-         * 1. Get Paddle configuration from our server.
-         */
-        const response = await fetch("/paddle/config", {
-            cache: "no-store"
-        });
-
-        console.log(
-            "PADDLE CONFIG HTTP:",
-            response.status
-        );
-
-        if (!response.ok) {
-            throw new Error(
-                "Paddle config HTTP " + response.status
-            );
-        }
-
-        const config = await response.json();
-
-        console.log(
-            "PADDLE CONFIG:",
-            {
-                success: config.success,
-                environment: config.environment,
-                hasClientToken: !!config.clientToken
-            }
-        );
-
-        if (!config.success || !config.clientToken) {
-            throw new Error(
-                config.message || "Paddle Client Token غير مضبوط"
-            );
-        }
-
-        /*
-         * 2. Load Paddle.js exactly once.
-         */
-        if (!window.Paddle) {
-
-            console.log("PADDLE: loading paddle.js");
-
-            await new Promise((resolve, reject) => {
-
-                const existing =
-                    document.querySelector(
-                        'script[src*="cdn.paddle.com/paddle/v2/paddle.js"]'
-                    );
-
-                if (existing) {
-
-                    existing.addEventListener(
-                        "load",
-                        resolve,
-                        { once: true }
-                    );
-
-                    existing.addEventListener(
-                        "error",
-                        () => reject(
-                            new Error(
-                                "تعذر تحميل Paddle.js"
-                            )
-                        ),
-                        { once: true }
-                    );
-
-                    return;
-                }
-
-                const script =
-                    document.createElement("script");
-
-                script.src =
-                    "https://cdn.paddle.com/paddle/v2/paddle.js";
-
-                script.async = true;
-
-                script.onload = () => {
-                    console.log(
-                        "PADDLE: paddle.js loaded"
-                    );
-                    resolve();
-                };
-
-                script.onerror = () => {
-                    reject(
-                        new Error(
-                            "تعذر تحميل Paddle.js"
-                        )
-                    );
-                };
-
-                document.head.appendChild(script);
-            });
-        }
-
-        if (!window.Paddle) {
-            throw new Error(
-                "Paddle SDK لم يتم تحميله"
-            );
-        }
-
-        /*
-         * 3. Sandbox environment.
-         */
-        if (
-            config.environment === "sandbox" &&
-            Paddle.Environment &&
-            typeof Paddle.Environment.set === "function"
-        ) {
-            console.log(
-                "PADDLE: setting sandbox"
-            );
-
-            Paddle.Environment.set("sandbox");
-        }
-
-        /*
-         * 4. Initialize only once.
-         */
-        if (!window.__ULTRAAI_PADDLE_INITIALIZED) {
-
-            console.log(
-                "PADDLE: initializing"
-            );
-
-            Paddle.Initialize({
-                token: config.clientToken,
-
-                eventCallback: function(data) {
-
-                    console.log(
-                        "PADDLE EVENT:",
-                        data
-                    );
-
-                    if (
-                        data &&
-                        data.name === "checkout.error"
-                    ) {
-                        console.error(
-                            "========== PADDLE CHECKOUT ERROR EVENT ==========",
-                            data
-                        );
-
-                        const detail =
-                            data.data || data;
-
-                        const code =
-                            detail.code ||
-                            detail.error_code ||
-                            detail.type ||
-                            "unknown";
-
-                        const message =
-                            detail.message ||
-                            detail.detail ||
-                            "Paddle checkout error";
-
-                        console.error(
-                            "PADDLE ERROR CODE:",
-                            code
-                        );
-
-                        console.error(
-                            "PADDLE ERROR MESSAGE:",
-                            message
-                        );
-
-                        alert(
-                            "Paddle Error:\n" +
-                            code +
-                            "\n\n" +
-                            message
-                        );
-                    }
-                }
-            });
-
-            window.__ULTRAAI_PADDLE_INITIALIZED = true;
-
-            console.log(
-                "PADDLE: initialized"
-            );
-        }
-
-        /*
-         * 5. Verify Checkout API exists.
-         */
-        if (
-            !Paddle.Checkout ||
-            typeof Paddle.Checkout.open !== "function"
-        ) {
-            throw new Error(
-                "Paddle Checkout API غير متاحة"
-            );
-        }
-
-        console.log(
-            "PADDLE PRICE:",
-            PRICE_ID
-        );
-
-        /*
-         * 6. Open checkout.
-         */
-        const checkoutOptions = {
-            items: [
-                {
-                    priceId: PRICE_ID,
-                    quantity: 1
-                }
-            ]
-        };
-
-        console.log(
-            "PADDLE CHECKOUT OPTIONS:",
-            checkoutOptions
-        );
-
-        try {
-
-            Paddle.Checkout.open(
-                checkoutOptions
-            );
-
-            console.log(
-                "PADDLE: Checkout.open executed"
-            );
-
-        } catch (checkoutError) {
-
-            console.error(
-                "========== PADDLE CHECKOUT.OPEN EXCEPTION =========="
-            );
-
-            console.error(
-                checkoutError
-            );
-
-            console.error(
-                "name:",
-                checkoutError?.name
-            );
-
-            console.error(
-                "message:",
-                checkoutError?.message
-            );
-
-            console.error(
-                "code:",
-                checkoutError?.code
-            );
-
-            console.error(
-                "detail:",
-                checkoutError?.detail
-            );
-
-            throw checkoutError;
-        }
+        window.location.href = HOSTED_CHECKOUT_URL;
 
     } catch (error) {
 
         console.error(
-            "========== PADDLE FINAL ERROR =========="
-        );
-
-        console.error(
-            "ERROR:",
+            "PADDLE HOSTED CHECKOUT ERROR:",
             error
         );
 
-        console.error(
-            "NAME:",
-            error?.name
-        );
-
-        console.error(
-            "MESSAGE:",
-            error?.message
-        );
-
-        console.error(
-            "CODE:",
-            error?.code
-        );
-
-        console.error(
-            "DETAIL:",
-            error?.detail
-        );
-
         alert(
-            "تعذر فتح الدفع.\n\n" +
-            (
-                error?.message ||
-                error?.detail ||
-                "خطأ غير معروف"
-            )
+            "تعذر فتح صفحة الدفع:\n" +
+            (error.message || "خطأ غير معروف")
         );
-
-    } finally {
 
         if (button) {
             button.disabled = false;
             button.textContent = "اشتراك Premium";
         }
-
-        console.log(
-            "========== PADDLE CHECKOUT END =========="
-        );
     }
 }
