@@ -42,7 +42,62 @@ function saveData(data) {
     );
 }
 
+
 router.post("/generate", authMiddleware, async (req, res) => {
+
+    /*
+     * TikTok Free Access
+     */
+    const accessFile = path.join(
+        __dirname,
+        "..",
+        "data",
+        "tiktok-access.json"
+    );
+
+    let accessData = {};
+
+    try {
+        if (fs.existsSync(accessFile)) {
+            accessData = JSON.parse(
+                fs.readFileSync(accessFile, "utf8") || "{}"
+            );
+        }
+    } catch (error) {
+        console.error("TIKTOK ACCESS CHECK ERROR:", error);
+
+        return res.status(500).json({
+            success: false,
+            message: "تعذر التحقق من صلاحية TikTok."
+        });
+    }
+
+    const currentUserId =
+        req.user.id ||
+        req.user.userId ||
+        req.user._id;
+
+    const access =
+        accessData[String(currentUserId)];
+
+    const expiresAt =
+        access?.expiresAt
+            ? new Date(access.expiresAt).getTime()
+            : 0;
+
+    const tiktokActive =
+        access?.enabled === true &&
+        Number.isFinite(expiresAt) &&
+        expiresAt > Date.now();
+
+    if (!tiktokActive) {
+        return res.status(403).json({
+            success: false,
+            code: "TIKTOK_FREE_EXPIRED",
+            message: "مدة TikTok المجانية منتهية أو غير مفعلة."
+        });
+    }
+
 
     try {
 

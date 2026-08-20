@@ -361,3 +361,74 @@ async function startPaddlePremium() {
         }
     }
 }
+
+/* =========================================
+   TIKTOK ACCESS - USER PAGE PROTECTION
+========================================= */
+
+async function checkTikTokAccess() {
+    const result =
+        document.getElementById("autoContentResult");
+
+    if (!result) return;
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) return;
+
+    try {
+        const response = await fetch(
+            "/tiktok-access/status",
+            {
+                headers: {
+                    "Authorization":
+                        "Bearer " + token
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || data.active !== true) {
+
+            result.style.display = "block";
+
+            result.innerHTML = `
+                <div class="auto-content-error">
+                    🔒 TikTok المجاني غير متاح حالياً.
+                    <br>
+                    مدة الوصول المجانية منتهية أو غير مفعلة.
+                </div>
+            `;
+
+            const generateButton =
+                document.querySelector(
+                    '[onclick="generateAutoContent()"]'
+                );
+
+            if (generateButton) {
+                generateButton.disabled = true;
+                generateButton.style.opacity = "0.5";
+            }
+
+            return false;
+        }
+
+        return true;
+
+    } catch (error) {
+
+        console.error(
+            "TikTok access check error:",
+            error
+        );
+
+        return false;
+    }
+}
+
+
+/* فحص الصلاحية مباشرة عند تحميل الصفحة */
+checkTikTokAccess();
+

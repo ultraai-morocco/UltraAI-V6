@@ -22,7 +22,7 @@ function makeHeader(target, title, subtitle = "") {
         <button
             class="v6-back"
             type="button"
-            onclick="loadPage('home')">
+            onclick="history.back()">
             ←
         </button>
 
@@ -157,7 +157,7 @@ async function loadPage(page) {
                     "autoContentScript";
 
                 script.src =
-                    "/js/auto-content.js?v=20260819-final2";
+                    "/js/auto-content.js?v=20260820-tiktok-access";
 
                 script.onload = () => {
                     console.log(

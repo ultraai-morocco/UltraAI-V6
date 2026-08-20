@@ -561,6 +561,62 @@ function openAdminUserDetails(userId) {
                 <strong>${escapeAdminHTML(lastActivityText)}</strong>
             </div>
 
+            <!-- =====================================
+                 TIKTOK FREE ACCESS
+            ====================================== -->
+
+            <div class="admin-user-tiktok-access">
+
+                <div class="admin-user-tiktok-title">
+                    <strong>🎵 TikTok</strong>
+                    <span id="tiktokAccessStatus-${id}">
+                        جاري التحقق...
+                    </span>
+                </div>
+
+                <div
+                    id="tiktokAccessInfo-${id}"
+                    class="admin-user-tiktok-info">
+                    جاري تحميل حالة TikTok...
+                </div>
+
+                <div class="admin-user-tiktok-actions">
+
+                    <button
+                        type="button"
+                        onclick="grantTikTokFree('${id}')">
+                        🟢 تفعيل مجاني
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="extendTikTokFree('${id}', 7)">
+                        ➕ 7 أيام
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="extendTikTokFree('${id}', 30)">
+                        ➕ 30 يوم
+                    </button>
+
+                    <button
+                        type="button"
+                        onclick="setTikTokExpiry('${id}')">
+                        📅 تحديد النهاية
+                    </button>
+
+                    <button
+                        type="button"
+                        class="admin-tiktok-disable"
+                        onclick="disableTikTokFree('${id}')">
+                        ⛔ إيقاف المجاني
+                    </button>
+
+                </div>
+
+            </div>
+
             <div class="admin-user-details-actions">
                 <button
                     type="button"
@@ -574,6 +630,7 @@ function openAdminUserDetails(userId) {
     document.body.appendChild(modal);
 
     loadAdminUserStats(userId);
+    refreshTikTokAccessUI(userId);
 
 
 }
@@ -656,6 +713,328 @@ function closeAdminUserDetails() {
     const modal = document.getElementById("adminUserDetailsModal");
     if (modal) modal.remove();
 }
+
+/* =========================================
+   TIKTOK FREE ACCESS - ADMIN
+========================================= */
+
+async function getTikTokAccess(userId) {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) return null;
+
+    try {
+
+        const response = await fetch(
+            `/tiktok-access`,
+            {
+                headers: {
+                    "Authorization":
+                        "Bearer " + token
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message ||
+                "تعذر تحميل صلاحيات TikTok"
+            );
+        }
+
+        const item =
+            Array.isArray(data.access)
+                ? data.access.find(
+                    x =>
+                        String(x.userId) ===
+                        String(userId)
+                )
+                : null;
+
+        return item;
+
+    } catch (error) {
+
+        console.error(
+            "TikTok access load error:",
+            error
+        );
+
+        return null;
+    }
+}
+
+
+async function refreshTikTokAccessUI(userId) {
+
+    const statusEl =
+        document.getElementById(
+            `tiktokAccessStatus-${userId}`
+        );
+
+    const infoEl =
+        document.getElementById(
+            `tiktokAccessInfo-${userId}`
+        );
+
+    if (!statusEl || !infoEl) return;
+
+    const access =
+        await getTikTokAccess(userId);
+
+    if (!access) {
+
+        statusEl.textContent =
+            "🔴 غير مفعل";
+
+        infoEl.innerHTML =
+            "لا توجد مدة مجانية مفعلة لهذا المستخدم.";
+
+        return;
+    }
+
+    const expiry =
+        access.expiresAt
+            ? new Date(access.expiresAt)
+            : null;
+
+    const active =
+        access.enabled === true &&
+        expiry &&
+        expiry.getTime() > Date.now();
+
+    if (active) {
+
+        statusEl.textContent =
+            "🟢 فعال";
+
+        infoEl.innerHTML = `
+            <div>
+                ينتهي في:
+                <strong>
+                    ${escapeAdminHTML(
+                        expiry.toLocaleString("ar-MA")
+                    )}
+                </strong>
+            </div>
+        `;
+
+    } else {
+
+        statusEl.textContent =
+            "🔴 منتهي / متوقف";
+
+        infoEl.innerHTML = `
+            <div>
+                تاريخ الانتهاء:
+                <strong>
+                    ${
+                        expiry
+                            ? escapeAdminHTML(
+                                expiry.toLocaleString("ar-MA")
+                              )
+                            : "-"
+                    }
+                </strong>
+            </div>
+        `;
+    }
+}
+
+
+async function grantTikTokFree(userId) {
+
+    const value =
+        prompt(
+            "حدد مدة TikTok المجاني بالأيام:",
+            "30"
+        );
+
+    if (value === null) return;
+
+    const days =
+        Number(value);
+
+    if (
+        !Number.isFinite(days) ||
+        days <= 0
+    ) {
+        alert("❌ عدد الأيام غير صالح.");
+        return;
+    }
+
+    const expires =
+        new Date(
+            Date.now() +
+            days * 24 * 60 * 60 * 1000
+        );
+
+    await sendTikTokAccessRequest(
+        `/tiktok-access/${encodeURIComponent(userId)}/grant`,
+        {
+            expiresAt:
+                expires.toISOString()
+        }
+    );
+}
+
+
+async function extendTikTokFree(userId, days) {
+
+    if (
+        !confirm(
+            `واش بغيتي تزيد ${days} يوم للمستخدم؟`
+        )
+    ) {
+        return;
+    }
+
+    await sendTikTokAccessRequest(
+        `/tiktok-access/${encodeURIComponent(userId)}/extend`,
+        {
+            days
+        }
+    );
+}
+
+
+async function setTikTokExpiry(userId) {
+
+    const value =
+        prompt(
+            "دخل تاريخ ووقت انتهاء TikTok.\nمثال: 2026-09-30T23:59",
+            ""
+        );
+
+    if (!value) return;
+
+    const date =
+        new Date(value);
+
+    if (
+        !Number.isFinite(date.getTime()) ||
+        date.getTime() <= Date.now()
+    ) {
+        alert("❌ التاريخ غير صالح أو انتهى.");
+        return;
+    }
+
+    await sendTikTokAccessRequest(
+        `/tiktok-access/${encodeURIComponent(userId)}/set-expiry`,
+        {
+            expiresAt:
+                date.toISOString()
+        }
+    );
+}
+
+
+async function disableTikTokFree(userId) {
+
+    if (
+        !confirm(
+            "⚠️ واش متأكد بغيتي توقف TikTok المجاني لهذا المستخدم؟"
+        )
+    ) {
+        return;
+    }
+
+    await sendTikTokAccessRequest(
+        `/tiktok-access/${encodeURIComponent(userId)}/disable`,
+        {}
+    );
+}
+
+
+async function sendTikTokAccessRequest(url, body) {
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) {
+        alert("خاصك تسجل الدخول.");
+        return;
+    }
+
+    try {
+
+        const response =
+            await fetch(
+                url,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json",
+
+                        "Authorization":
+                            "Bearer " + token
+                    },
+
+                    body:
+                        JSON.stringify(body)
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+
+            throw new Error(
+                data.message ||
+                "تعذر تنفيذ العملية."
+            );
+        }
+
+        alert(
+            "✅ " +
+            (data.message ||
+             "تم تنفيذ العملية.")
+        );
+
+        const userId =
+            url.split("/")[2];
+
+        await refreshTikTokAccessUI(
+            decodeURIComponent(userId)
+        );
+
+    } catch (error) {
+
+        console.error(
+            "TikTok admin action error:",
+            error
+        );
+
+        alert(
+            "❌ " +
+            (error.message ||
+             "تعذر تنفيذ العملية.")
+        );
+    }
+}
+
+
+window.grantTikTokFree =
+    grantTikTokFree;
+
+window.extendTikTokFree =
+    extendTikTokFree;
+
+window.setTikTokExpiry =
+    setTikTokExpiry;
+
+window.disableTikTokFree =
+    disableTikTokFree;
+
+window.refreshTikTokAccessUI =
+    refreshTikTokAccessUI;
+
 
 window.openAdminUserDetails = openAdminUserDetails;
 window.closeAdminUserDetails = closeAdminUserDetails;

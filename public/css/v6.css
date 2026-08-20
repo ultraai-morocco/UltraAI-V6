@@ -6078,3 +6078,62 @@ button{
         align-items: flex-start;
     }
 }
+
+/* =========================================
+   ADMIN - TIKTOK FREE ACCESS
+========================================= */
+
+.admin-user-tiktok-access {
+    margin-top: 18px;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.admin-user-tiktok-title {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+.admin-user-tiktok-title strong {
+    font-size: 17px;
+}
+
+.admin-user-tiktok-title span {
+    font-size: 13px;
+}
+
+.admin-user-tiktok-info {
+    padding: 12px;
+    margin-bottom: 12px;
+    border-radius: 12px;
+    background: rgba(0, 0, 0, 0.15);
+    font-size: 13px;
+    line-height: 1.7;
+}
+
+.admin-user-tiktok-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+}
+
+.admin-user-tiktok-actions button {
+    border: none;
+    border-radius: 10px;
+    padding: 10px 8px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.admin-user-tiktok-actions button:active {
+    transform: scale(0.98);
+}
+
+.admin-tiktok-disable {
+    grid-column: 1 / -1;
+}
