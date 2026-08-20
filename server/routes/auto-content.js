@@ -90,7 +90,12 @@ router.post("/generate", authMiddleware, async (req, res) => {
         Number.isFinite(expiresAt) &&
         expiresAt > Date.now();
 
-    if (!tiktokActive) {
+    const isAdmin =
+        req.user &&
+        String(req.user.id || req.user.userId || req.user._id) ===
+        String(process.env.ULTRAAI_ADMIN_ID);
+
+    if (!isAdmin && !tiktokActive) {
         return res.status(403).json({
             success: false,
             code: "TIKTOK_FREE_EXPIRED",
