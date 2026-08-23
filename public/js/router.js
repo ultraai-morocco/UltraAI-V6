@@ -268,6 +268,61 @@ async function loadPage(page) {
         }
 
 
+        /* VIDEO AI */
+
+        if (page === "video") {
+
+            makeHeader(
+                "videoHeader",
+                "Video AI",
+                "تحويل الصورة إلى فيديو"
+            );
+
+            const oldVideoScript =
+                document.getElementById("videoScript");
+
+            if (oldVideoScript) {
+                oldVideoScript.remove();
+            }
+
+            await new Promise((resolve, reject) => {
+
+                const script =
+                    document.createElement("script");
+
+                script.id =
+                    "videoScript";
+
+                script.src =
+                    "/js/video.js?v=20260823";
+
+                script.onload = () => {
+                    console.log(
+                        "✅ VIDEO AI JS LOADED"
+                    );
+                    resolve();
+                };
+
+                script.onerror = () => {
+                    console.error(
+                        "❌ VIDEO AI JS FAILED"
+                    );
+                    reject(
+                        new Error(
+                            "Failed to load video.js"
+                        )
+                    );
+                };
+
+                document.body.appendChild(script);
+            });
+
+            if (typeof initVideoAI === "function") {
+                initVideoAI();
+            }
+
+        }
+
         /* MEMORY */
 
         if (page === "memory") {

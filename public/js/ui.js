@@ -233,6 +233,11 @@ function createSideMenu(){
                     🌍 الشات العالمي
                 </button>
 
+                <button onclick="openFromMenu('video')">
+                    <span>🎬</span>
+                    <b>Video AI</b>
+                </button>
+
                 <button onclick="openFromMenu('memory')">
                     <span>🧠</span>
                     <b>الذاكرة</b>

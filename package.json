@@ -6,6 +6,7 @@
     "start": "node server/server.js"
   },
   "dependencies": {
+    "@huggingface/inference": "^4.13.28",
     "@paddle/paddle-node-sdk": "^3.10.0",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",

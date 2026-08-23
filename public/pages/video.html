@@ -1,0 +1,81 @@
+<div class="video-ai-page">
+
+    <div class="video-ai-hero">
+        <div class="video-ai-icon">🎬</div>
+
+        <h1>Video AI</h1>
+
+        <p>
+            حوّل صورة إلى فيديو متحرك باستعمال الذكاء الاصطناعي
+        </p>
+    </div>
+
+    <section class="video-ai-card">
+
+        <label>🖼️ الصورة</label>
+
+        <input
+            id="videoImage"
+            type="file"
+            accept="image/*"
+        >
+
+        <div
+            id="videoPreview"
+            class="video-preview"
+            style="display:none;">
+        </div>
+
+        <label>✨ وصف الحركة</label>
+
+        <textarea
+            id="videoPrompt"
+            class="video-prompt"
+            rows="4"
+            maxlength="1000"
+            placeholder="مثلاً: حركة كاميرا سينمائية ناعمة، إضاءة جميلة، حركة واقعية..."
+        ></textarea>
+
+        <button
+            id="generateVideoBtn"
+            type="button"
+            class="video-generate-btn"
+            onclick="generateVideoAI()">
+
+            🎬 توليد الفيديو
+
+        </button>
+
+        <div
+            id="videoStatus"
+            class="video-status"
+            style="display:none;">
+        </div>
+
+    </section>
+
+    <section
+        id="videoResult"
+        class="video-result"
+        style="display:none;">
+
+        <h3>🎥 الفيديو الناتج</h3>
+
+        <video
+            id="generatedVideo"
+            controls
+            playsinline
+            style="width:100%;border-radius:16px;">
+        </video>
+
+        <a
+            id="videoDownload"
+            class="video-download-btn"
+            href="#"
+            download>
+            ⬇️ تحميل الفيديو
+        </a>
+
+    </section>
+
+</div>

@@ -429,6 +429,7 @@ app.use("/ideas-delete", require("./routes/ideas-delete"));
 app.use("/tiktok-access", require("./routes/tiktok-access"));
 app.use("/ideas-update", require("./routes/ideas-update"));
 app.use("/ai-history", require("./routes/ai-history"));
+app.use("/video-generate", require("./routes/video-generate"));
 app.use("/files-api", require("./routes/files"));
 
 
