@@ -3,6 +3,242 @@
     <div class="youtube-hero">
         <div class="youtube-icon">▶️</div>
 
+<script>
+
+async function loadYouTubePageStatus() {
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) return;
+
+    const status =
+        document.getElementById("youtubeStatus");
+
+    const uploadSection =
+        document.getElementById("youtubeUploadSection");
+
+    const button =
+        document.getElementById("youtubeConnectPageBtn");
+
+    try {
+
+        const response =
+            await fetch(
+                "/youtube/status",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            response.ok &&
+            data.success &&
+            data.connected === true
+        ) {
+
+            if (status) {
+                status.innerHTML = `
+                    <div class="youtube-status-icon">
+                        🟢
+                    </div>
+
+                    <h2>YouTube مربوط ✅</h2>
+
+                    <p>
+                        القناة ديالك مربوطة بـ UltraAI.
+                    </p>
+                `;
+            }
+
+            if (button) {
+                button.style.display = "none";
+            }
+
+            if (uploadSection) {
+                uploadSection.style.display = "block";
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "YouTube page status error:",
+            error
+        );
+    }
+}
+
+
+document.addEventListener(
+    "DOMContentLoaded",
+    loadYouTubePageStatus
+);
+
+
+async function uploadYouTubeVideo() {
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) {
+        alert("يجب تسجيل الدخول إلى UltraAI أولاً.");
+        return;
+    }
+
+    const fileInput =
+        document.getElementById("youtubeVideoFile");
+
+    const titleInput =
+        document.getElementById("youtubeVideoTitle");
+
+    const descriptionInput =
+        document.getElementById("youtubeVideoDescription");
+
+    const privacyInput =
+        document.getElementById("youtubePrivacyStatus");
+
+    const button =
+        document.getElementById("youtubeUploadBtn");
+
+    const result =
+        document.getElementById("youtubeUploadResult");
+
+    const file =
+        fileInput?.files?.[0];
+
+    if (!file) {
+        alert("اختار فيديو أولاً.");
+        return;
+    }
+
+    if (!titleInput.value.trim()) {
+        alert("دخل عنوان الفيديو.");
+        titleInput.focus();
+        return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+        alert("النسخة التجريبية كتسمح بفيديو حتى 50MB.");
+        return;
+    }
+
+    const formData =
+        new FormData();
+
+    formData.append(
+        "video",
+        file
+    );
+
+    formData.append(
+        "title",
+        titleInput.value.trim()
+    );
+
+    formData.append(
+        "description",
+        descriptionInput.value.trim()
+    );
+
+    formData.append(
+        "privacyStatus",
+        privacyInput.value
+    );
+
+    button.disabled = true;
+    button.textContent = "⏳ جاري رفع الفيديو...";
+
+    result.innerHTML =
+        "⏳ جاري إرسال الفيديو إلى YouTube...";
+
+    try {
+
+        const response =
+            await fetch(
+                "/youtube/upload",
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    },
+
+                    body: formData
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message ||
+                "فشل نشر الفيديو"
+            );
+        }
+
+        result.innerHTML = `
+            <div class="youtube-success">
+                ✅ تم نشر الفيديو بنجاح!
+                <br><br>
+                <a
+                    href="${data.url}"
+                    target="_blank"
+                    rel="noopener">
+                    ▶️ فتح الفيديو على YouTube
+                </a>
+            </div>
+        `;
+
+    } catch (error) {
+
+        console.error(
+            "YouTube upload error:",
+            error
+        );
+
+        result.innerHTML = `
+            <div class="youtube-error">
+                ❌ ${escapeYouTubeHtml(
+                    error.message
+                )}
+            </div>
+        `;
+
+    } finally {
+
+        button.disabled = false;
+        button.textContent =
+            "📤 نشر على YouTube";
+    }
+}
+
+
+function escapeYouTubeHtml(value) {
+
+    return String(value || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+}
+
+
+window.uploadYouTubeVideo =
+    uploadYouTubeVideo;
+</script>
+
+
         <h1>Auto YouTube</h1>
 
         <p>
@@ -35,6 +271,57 @@
             ▶️ ربط قناة YouTube
 
         </button>
+
+    </section>
+
+    <section
+        id="youtubeUploadSection"
+        class="youtube-card"
+        style="display:none;">
+
+        <h2>📤 نشر فيديو على YouTube</h2>
+
+        <label>🎬 الفيديو</label>
+
+        <input
+            id="youtubeVideoFile"
+            type="file"
+            accept="video/*">
+
+        <label>📝 العنوان</label>
+
+        <input
+            id="youtubeVideoTitle"
+            type="text"
+            maxlength="100"
+            placeholder="عنوان الفيديو">
+
+        <label>📄 الوصف</label>
+
+        <textarea
+            id="youtubeVideoDescription"
+            maxlength="5000"
+            placeholder="وصف الفيديو"></textarea>
+
+        <label>🔐 الخصوصية</label>
+
+        <select id="youtubePrivacyStatus">
+            <option value="private">خاص</option>
+            <option value="unlisted">غير مدرج</option>
+            <option value="public">عام</option>
+        </select>
+
+        <button
+            id="youtubeUploadBtn"
+            type="button"
+            onclick="uploadYouTubeVideo()">
+            📤 نشر على YouTube
+        </button>
+
+        <div
+            id="youtubeUploadResult"
+            style="margin-top:15px;">
+        </div>
 
     </section>
 

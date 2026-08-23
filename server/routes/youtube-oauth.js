@@ -1,8 +1,28 @@
 const express = require("express");
 const crypto = require("crypto");
 const { google } = require("googleapis");
+const multer = require("multer");
+const fs = require("fs");
 
 const router = express.Router();
+
+/* =========================================
+   YOUTUBE VIDEO UPLOAD
+========================================= */
+
+const youtubeUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024
+  },
+  fileFilter: (req, file, cb) => {
+    if (!String(file.mimetype || "").startsWith("video/")) {
+      return cb(new Error("VIDEO_ONLY"));
+    }
+    cb(null, true);
+  }
+});
+
 
 const auth = require("../auth");
 const kvUsers = require("../kv-users");
@@ -103,8 +123,31 @@ async function getUserFromRequest(req) {
   }
 
   try {
-    return await auth.getUserFromToken(token);
-  } catch {
+    const decoded = auth.verifyToken(token);
+
+    if (!decoded || !decoded.id) {
+      return null;
+    }
+
+    /*
+     * YouTube OAuth data is stored through kvUsers.
+     * Always load the latest user from the same storage.
+     */
+    const user =
+      await kvUsers.findUserById(decoded.id);
+
+    if (!user || user.banned === true) {
+      return null;
+    }
+
+    return user;
+
+  } catch (error) {
+    console.error(
+      "YouTube user lookup error:",
+      error.message
+    );
+
     return null;
   }
 }
@@ -239,6 +282,148 @@ router.get("/callback", async (req, res) => {
     );
   }
 });
+
+
+/* =========================================
+   PUBLISH VIDEO TO YOUTUBE
+========================================= */
+
+router.post("/upload", youtubeUpload.single("video"), async (req, res) => {
+
+  let tempPath = null;
+
+  try {
+
+    const user = await getUserFromRequest(req);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "يجب تسجيل الدخول إلى UltraAI أولاً."
+      });
+    }
+
+    const youtube = user.youtube || {};
+
+    if (
+      youtube.connected !== true ||
+      !youtube.refreshToken
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "يجب ربط قناة YouTube أولاً."
+      });
+    }
+
+    if (!req.file) {
+      return res.status(400).json({
+        success: false,
+        message: "اختر فيديو أولاً."
+      });
+    }
+
+    const title =
+      String(req.body.title || "").trim();
+
+    const description =
+      String(req.body.description || "").trim();
+
+    const privacyStatus =
+      ["public", "unlisted", "private"]
+        .includes(req.body.privacyStatus)
+        ? req.body.privacyStatus
+        : "private";
+
+    if (!title) {
+      return res.status(400).json({
+        success: false,
+        message: "أدخل عنوان الفيديو."
+      });
+    }
+
+    const oauth2Client = getOAuthClient();
+
+    oauth2Client.setCredentials({
+      refresh_token: youtube.refreshToken
+    });
+
+    const youtubeApi = google.youtube({
+      version: "v3",
+      auth: oauth2Client
+    });
+
+    const result =
+      await youtubeApi.videos.insert({
+        part: "snippet,status",
+
+        requestBody: {
+          snippet: {
+            title,
+            description
+          },
+
+          status: {
+            privacyStatus
+          }
+        },
+
+        media: {
+          mimeType: req.file.mimetype,
+          body: require("stream").Readable.from(
+            req.file.buffer
+          )
+        }
+      });
+
+    const videoId =
+      result.data.id;
+
+    return res.json({
+      success: true,
+      message: "تم نشر الفيديو على YouTube بنجاح ✅",
+      videoId,
+      url:
+        `https://www.youtube.com/watch?v=${videoId}`
+    });
+
+  } catch (err) {
+
+    console.error(
+      "YouTube upload error:",
+      err
+    );
+
+    let message =
+      "تعذر نشر الفيديو على YouTube.";
+
+    if (err.message === "VIDEO_ONLY") {
+      message = "الملف يجب أن يكون فيديو.";
+    }
+
+    if (
+      err.code === 401 ||
+      err.code === 403
+    ) {
+      message =
+        "انتهت صلاحية ربط YouTube أو لا توجد صلاحية للنشر.";
+    }
+
+    return res.status(500).json({
+      success: false,
+      message
+    });
+
+  } finally {
+
+    if (tempPath) {
+      try {
+        fs.unlinkSync(tempPath);
+      } catch {}
+    }
+
+  }
+});
+
 
 /* معرفة حالة الربط */
 router.get("/status", async (req, res) => {
