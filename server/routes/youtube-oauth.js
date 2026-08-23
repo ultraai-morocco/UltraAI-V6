@@ -256,17 +256,27 @@ router.get("/callback", async (req, res) => {
       user.id
     );
 
+    /*
+     * OAuth نجح.
+     * رجعو المستخدم مباشرة لصفحة Auto YouTube.
+     */
     res.send(`
       <!doctype html>
       <html>
       <head>
         <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
         <title>YouTube Connected</title>
       </head>
       <body>
         <h2>YouTube connected successfully ✅</h2>
-        <p>Your YouTube channel is now connected to UltraAI.</p>
-        <p>You can close this page and return to UltraAI.</p>
+        <p>جاري الرجوع إلى Auto YouTube...</p>
+
+        <script>
+          setTimeout(function () {
+            window.location.replace("/?page=auto-content&youtube=connected");
+          }, 700);
+        </script>
       </body>
       </html>
     `);
