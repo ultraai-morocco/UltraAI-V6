@@ -182,6 +182,29 @@ async function loadPage(page) {
 
         }
 
+        /* YOUTUBE */
+
+        if (page === "youtube") {
+
+            const oldYouTubeScript =
+                document.getElementById("youtubeScript");
+
+            if (oldYouTubeScript) {
+                oldYouTubeScript.remove();
+            }
+
+            const script =
+                document.createElement("script");
+
+            script.id = "youtubeScript";
+
+            script.src =
+                "/js/profile.js?v=20260823-youtube";
+
+            document.body.appendChild(script);
+        }
+
+
         /* AI */
 
         if (page === "ai") {
