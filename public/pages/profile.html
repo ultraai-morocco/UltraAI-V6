@@ -114,6 +114,34 @@
             </div>
         </div>
 
+<div class="profile-actions">
+
+    <button
+        id="youtubeConnectBtn"
+        onclick="connectYouTube()">
+        ▶️ <span id="youtubeConnectText">ربط YouTube</span>
+    </button>
+
+    <button onclick="openEditProfile()">
+        ✏️ <span data-i18n="editAccount">تعديل الحساب</span>
+    </button>
+
+    <button onclick="openChangePassword()">
+        🔐 <span data-i18n="changePassword">تغيير كلمة المرور</span>
+    </button>
+
+    <button onclick="loadPage('settings')">
+        ⚙️ <span data-i18n="settings">الإعدادات</span>
+    </button>
+
+    <button
+        class="logout-btn"
+        onclick="logoutUltraAI()">
+        🚪 <span data-i18n="logout">تسجيل الخروج</span>
+    </button>
+
+</div>
+
         <div class="profile-actions">
 
                 <button onclick="openEditProfile()">

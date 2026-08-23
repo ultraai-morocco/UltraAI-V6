@@ -277,6 +277,10 @@ async function loadPage(page) {
                 loadProfile();
             }
 
+            if (typeof loadYouTubeStatus === "function") {
+                loadYouTubeStatus();
+            }
+
         }
 
 

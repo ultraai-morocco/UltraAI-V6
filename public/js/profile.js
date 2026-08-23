@@ -605,3 +605,96 @@ window.closeChangePassword =
 window.saveNewPassword =
     saveNewPassword;
 
+/* =================================================
+   YOUTUBE OAUTH
+================================================= */
+
+async function connectYouTube() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("يجب تسجيل الدخول أولاً.");
+        return;
+    }
+
+    const btn = document.getElementById("youtubeConnectBtn");
+
+    if (btn) {
+        btn.disabled = true;
+        btn.innerHTML = "⏳ جاري فتح YouTube...";
+    }
+
+    try {
+        const response = await fetch(
+            "/youtube/connect?token=" +
+            encodeURIComponent(token)
+        );
+
+        if (response.redirected) {
+            window.location.href = response.url;
+            return;
+        }
+
+        if (!response.ok) {
+            const text = await response.text();
+            throw new Error(text || "فشل الاتصال بـ YouTube");
+        }
+
+        window.location.href = response.url;
+
+    } catch (error) {
+        console.error("YouTube connect error:", error);
+
+        alert(
+            "تعذر بدء ربط YouTube.\n\n" +
+            (error.message || "حدث خطأ غير معروف")
+        );
+
+        if (btn) {
+            btn.disabled = false;
+            btn.innerHTML = "▶️ ربط YouTube";
+        }
+    }
+}
+
+async function loadYouTubeStatus() {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    try {
+        const response = await fetch(
+            "/youtube/status?token=" +
+            encodeURIComponent(token)
+        );
+
+        const data = await response.json();
+
+        const btn = document.getElementById(
+            "youtubeConnectBtn"
+        );
+
+        const text = document.getElementById(
+            "youtubeConnectText"
+        );
+
+        if (!btn || !text) return;
+
+        if (data.success && data.connected) {
+            text.textContent = "YouTube مربوط ✅";
+            btn.disabled = true;
+        } else {
+            text.textContent = "ربط YouTube";
+            btn.disabled = false;
+        }
+
+    } catch (error) {
+        console.error(
+            "YouTube status error:",
+            error
+        );
+    }
+}
+
+window.connectYouTube = connectYouTube;
+window.loadYouTubeStatus = loadYouTubeStatus;
