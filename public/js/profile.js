@@ -703,7 +703,7 @@ window.loadYouTubeStatus = loadYouTubeStatus;
    AUTO YOUTUBE - PAGE CONNECTION
 ========================================= */
 
-async function connectYouTubePage() {
+function connectYouTubePage() {
 
     const token =
         localStorage.getItem("token");
@@ -721,49 +721,11 @@ async function connectYouTubePage() {
         button.textContent = "جاري فتح YouTube...";
     }
 
-    try {
+    const url =
+        "/youtube/connect?token=" +
+        encodeURIComponent(token);
 
-        const response = await fetch(
-            "/youtube/connect?token=" +
-            encodeURIComponent(token)
-        );
-
-        if (response.redirected) {
-
-            window.location.href =
-                response.url;
-
-            return;
-        }
-
-        const text =
-            await response.text();
-
-        if (!response.ok) {
-            throw new Error(text);
-        }
-
-        document.open();
-        document.write(text);
-        document.close();
-
-    } catch (error) {
-
-        console.error(
-            "YouTube connection error:",
-            error
-        );
-
-        alert(
-            "تعذر ربط YouTube. تأكد من إعداد Google OAuth."
-        );
-
-        if (button) {
-            button.disabled = false;
-            button.textContent =
-                "▶️ ربط قناة YouTube";
-        }
-    }
+    window.location.href = url;
 }
 
 window.connectYouTubePage =
