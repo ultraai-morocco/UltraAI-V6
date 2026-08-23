@@ -274,7 +274,7 @@ router.get("/callback", async (req, res) => {
 
         <script>
           setTimeout(function () {
-            window.location.replace("/?page=auto-content&youtube=connected");
+            window.location.replace("/?page=youtube&youtube=connected");
           }, 700);
         </script>
       </body>

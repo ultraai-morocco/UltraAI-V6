@@ -201,6 +201,22 @@ async function loadPage(page) {
             script.src =
                 "/js/profile.js?v=20260823-youtube";
 
+            script.onload = () => {
+                console.log("✅ YouTube JS loaded");
+
+                if (typeof loadYouTubePageStatus === "function") {
+                    loadYouTubePageStatus();
+                } else {
+                    console.warn(
+                        "⚠️ loadYouTubePageStatus غير موجودة"
+                    );
+                }
+            };
+
+            script.onerror = () => {
+                console.error("❌ Failed to load YouTube JS");
+            };
+
             document.body.appendChild(script);
         }
 

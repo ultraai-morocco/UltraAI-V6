@@ -77,10 +77,19 @@ async function loadYouTubePageStatus() {
 }
 
 
-document.addEventListener(
-    "DOMContentLoaded",
-    loadYouTubePageStatus
-);
+/*
+ * تشغيل الحالة مباشرة بعد تحميل صفحة YouTube
+ * سواء دخل المستخدم من Router أو رجع من OAuth.
+ */
+if (document.readyState === "loading") {
+    document.addEventListener(
+        "DOMContentLoaded",
+        loadYouTubePageStatus,
+        { once: true }
+    );
+} else {
+    loadYouTubePageStatus();
+}
 
 
 async function uploadYouTubeVideo() {
