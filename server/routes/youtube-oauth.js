@@ -169,7 +169,6 @@ router.get("/connect", async (req, res) => {
 
     const url = oauth2Client.generateAuthUrl({
       access_type: "offline",
-      prompt: "consent",
       state,
       scope: [
         "https://www.googleapis.com/auth/youtube.upload",
@@ -229,27 +228,49 @@ router.get("/callback", async (req, res) => {
     const { tokens } =
       await oauth2Client.getToken(code);
 
-    if (!tokens.refresh_token) {
+    /*
+     * Google may not return a refresh_token when the
+     * account has already granted access.
+     * لذلك نحافظو على refresh token القديم إذا كان موجود.
+     */
+    const oldYouTube = user.youtube || {};
+
+    const refreshToken =
+      tokens.refresh_token ||
+      oldYouTube.refreshToken ||
+      "";
+
+    if (!refreshToken) {
       return res.status(400).send(`
         <h2>YouTube connection failed ❌</h2>
         <p>Google did not return a refresh token.</p>
-        <p>Please try connecting again.</p>
+        <p>Disconnect UltraAI from your Google account and connect again.</p>
       `);
     }
 
     /*
      * نخزنو معلومات YouTube داخل حساب المستخدم.
-     * ما كنرجعوش tokens للواجهة.
+     * refreshToken هو المفتاح الدائم للربط.
      */
-    user.youtube = {
+    const youtubeData = {
       connected: true,
-      refreshToken: tokens.refresh_token,
-      accessToken: tokens.access_token || "",
-      expiryDate: tokens.expiry_date || null,
-      connectedAt: new Date().toISOString()
+      refreshToken,
+      accessToken:
+        tokens.access_token ||
+        oldYouTube.accessToken ||
+        "",
+      expiryDate:
+        tokens.expiry_date ||
+        oldYouTube.expiryDate ||
+        null,
+      connectedAt:
+        new Date().toISOString()
     };
 
-    await kvUsers.updateUser(user);
+    await kvUsers.updateYouTube(
+      user.id,
+      youtubeData
+    );
 
     console.log(
       "YouTube connected successfully for user:",

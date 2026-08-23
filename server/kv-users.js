@@ -475,6 +475,28 @@ async function updateUser(user) {
 
 
 /* =================================================
+   UPDATE YOUTUBE CONNECTION
+   يحافظ على بيانات المستخدم الأخرى
+================================================= */
+
+async function updateYouTube(userId, youtubeData) {
+
+    const user = await findUserById(userId);
+
+    if (!user) {
+        throw new Error("USER_NOT_FOUND");
+    }
+
+    user.youtube = {
+        ...(user.youtube || {}),
+        ...youtubeData
+    };
+
+    return await saveUser(user);
+}
+
+
+/* =================================================
    DELETE USER
 ================================================= */
 
@@ -590,6 +612,7 @@ module.exports = {
     saveUser,
 
     updateUser,
+    updateYouTube,
 
     deleteUser,
 

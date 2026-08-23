@@ -730,3 +730,97 @@ function connectYouTubePage() {
 
 window.connectYouTubePage =
     connectYouTubePage;
+
+/* =================================================
+   YOUTUBE PAGE STATUS - GLOBAL
+   مهم: youtube.html كيتحمل بـ innerHTML
+   لذلك خاص هاد الدالة تكون فـ JS خارجي
+================================================= */
+
+async function loadYouTubePageStatus() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        console.warn("⚠️ No UltraAI token for YouTube status");
+        return;
+    }
+
+    const status =
+        document.getElementById("youtubeStatus");
+
+    const uploadSection =
+        document.getElementById("youtubeUploadSection");
+
+    const button =
+        document.getElementById("youtubeConnectPageBtn");
+
+    if (!status) {
+        console.warn("⚠️ youtubeStatus element not found");
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            "/youtube/status",
+            {
+                headers: {
+                    "Authorization": "Bearer " + token
+                },
+                cache: "no-store"
+            }
+        );
+
+        const data = await response.json();
+
+        console.log("📺 YouTube status:", data);
+
+        if (
+            response.ok &&
+            data.success === true &&
+            data.connected === true
+        ) {
+
+            status.innerHTML = `
+                <div class="youtube-status-icon">🟢</div>
+
+                <h2>YouTube مربوط ✅</h2>
+
+                <p>
+                    القناة ديالك مربوطة بـ UltraAI.
+                </p>
+            `;
+
+            if (button) {
+                button.style.display = "none";
+            }
+
+            if (uploadSection) {
+                uploadSection.style.display = "block";
+            }
+
+        } else {
+
+            if (button) {
+                button.style.display = "block";
+            }
+
+            if (uploadSection) {
+                uploadSection.style.display = "none";
+            }
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "❌ YouTube page status error:",
+            error
+        );
+    }
+}
+
+window.loadYouTubePageStatus =
+    loadYouTubePageStatus;
+
