@@ -698,3 +698,73 @@ async function loadYouTubeStatus() {
 
 window.connectYouTube = connectYouTube;
 window.loadYouTubeStatus = loadYouTubeStatus;
+
+/* =========================================
+   AUTO YOUTUBE - PAGE CONNECTION
+========================================= */
+
+async function connectYouTubePage() {
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) {
+        alert("يجب تسجيل الدخول إلى UltraAI أولاً.");
+        return;
+    }
+
+    const button =
+        document.getElementById("youtubeConnectPageBtn");
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "جاري فتح YouTube...";
+    }
+
+    try {
+
+        const response = await fetch(
+            "/youtube/connect?token=" +
+            encodeURIComponent(token)
+        );
+
+        if (response.redirected) {
+
+            window.location.href =
+                response.url;
+
+            return;
+        }
+
+        const text =
+            await response.text();
+
+        if (!response.ok) {
+            throw new Error(text);
+        }
+
+        document.open();
+        document.write(text);
+        document.close();
+
+    } catch (error) {
+
+        console.error(
+            "YouTube connection error:",
+            error
+        );
+
+        alert(
+            "تعذر ربط YouTube. تأكد من إعداد Google OAuth."
+        );
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "▶️ ربط قناة YouTube";
+        }
+    }
+}
+
+window.connectYouTubePage =
+    connectYouTubePage;
