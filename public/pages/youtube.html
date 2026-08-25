@@ -252,6 +252,55 @@ function escapeYouTubeHtml(value) {
 
 window.uploadYouTubeVideo =
     uploadYouTubeVideo;
+
+/* =========================================
+   DIRECT YOUTUBE UPLOAD BUTTON
+   يعمل حتى مع Router / SPA
+========================================= */
+
+function bindYouTubeUploadButton() {
+
+    const btn =
+        document.getElementById("youtubeUploadBtn");
+
+    if (!btn) {
+        console.log("⚠️ YouTube upload button not found");
+        return;
+    }
+
+    if (btn.dataset.youtubeBound === "true") {
+        return;
+    }
+
+    btn.dataset.youtubeBound = "true";
+
+    btn.addEventListener("click", function (event) {
+
+        event.preventDefault();
+        event.stopPropagation();
+
+        console.log("🚀 DIRECT YOUTUBE BUTTON CLICK");
+
+        uploadYouTubeVideo();
+
+    });
+
+    console.log("✅ YouTube upload button bound");
+}
+
+if (document.readyState === "loading") {
+
+    document.addEventListener(
+        "DOMContentLoaded",
+        bindYouTubeUploadButton,
+        { once: true }
+    );
+
+} else {
+
+    bindYouTubeUploadButton();
+
+}
 </script>
 
 
