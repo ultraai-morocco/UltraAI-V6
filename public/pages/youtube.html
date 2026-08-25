@@ -94,8 +94,12 @@ if (document.readyState === "loading") {
 
 async function uploadYouTubeVideo() {
 
+    console.log("🚀 YouTube upload button clicked");
+
     const token =
         localStorage.getItem("token");
+
+    console.log("🔑 YouTube token:", token ? "FOUND" : "MISSING");
 
     if (!token) {
         alert("يجب تسجيل الدخول إلى UltraAI أولاً.");
@@ -169,6 +173,9 @@ async function uploadYouTubeVideo() {
         "⏳ جاري إرسال الفيديو إلى YouTube...";
 
     try {
+
+        console.log("📤 Sending POST /youtube/upload");
+        console.log("🎬 File:", file.name, file.size, file.type);
 
         const response =
             await fetch(
