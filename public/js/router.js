@@ -199,17 +199,17 @@ async function loadPage(page) {
             script.id = "youtubeScript";
 
             script.src =
-                "/js/profile.js?v=20260823-youtube";
+                "/js/youtube.js?v=20260826";
 
             script.onload = () => {
                 console.log("✅ YouTube JS loaded");
 
-                if (typeof loadYouTubePageStatus === "function") {
-                    loadYouTubePageStatus();
-                } else {
-                    console.warn(
-                        "⚠️ loadYouTubePageStatus غير موجودة"
-                    );
+                if (typeof window.loadYouTubePageStatus === "function") {
+                    window.loadYouTubePageStatus();
+                }
+
+                if (typeof window.bindYouTubeUploadButton === "function") {
+                    window.bindYouTubeUploadButton();
                 }
             };
 
