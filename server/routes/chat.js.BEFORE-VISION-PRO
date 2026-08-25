@@ -1,0 +1,843 @@
+const express = require("express");
+const router = express.Router();
+
+const fs = require("fs");
+const path = require("path");
+
+const db = require("../database");
+const auth = require("../auth");
+const Groq = require("groq-sdk");
+
+const groq = new Groq({
+    apiKey: process.env.GROQ_API_KEY
+});
+
+
+const conversationsFile =
+    path.join(
+        __dirname,
+        "../data/conversations.json"
+    );
+
+
+const imageDir =
+    path.join(
+        __dirname,
+        "../data/chat-images"
+    );
+
+
+if (!fs.existsSync(imageDir)) {
+    fs.mkdirSync(imageDir, {
+        recursive: true
+    });
+}
+
+
+function loadConversations(){
+
+    if(!fs.existsSync(conversationsFile)){
+        return [];
+    }
+
+    try{
+
+        return JSON.parse(
+            fs.readFileSync(
+                conversationsFile,
+                "utf8"
+            ) || "[]"
+        );
+
+    }catch(error){
+
+        console.error(
+            "Conversations load error:",
+            error
+        );
+
+        return [];
+
+    }
+
+}
+
+
+function saveConversations(data){
+
+    fs.writeFileSync(
+        conversationsFile,
+        JSON.stringify(
+            data,
+            null,
+            2
+        )
+    );
+
+}
+
+
+function makeConversationTitle(question){
+
+    let title =
+        String(question || "")
+        .replace(/\s+/g," ")
+        .trim();
+
+
+    if(!title){
+        return "محادثة";
+    }
+
+
+    if(title.length > 70){
+
+        title =
+            title
+            .substring(0,70)
+            .trim() +
+            "…";
+
+    }
+
+
+    return title;
+
+}
+
+
+/*
+   حفظ الصورة كملف
+*/
+function saveImage(base64, userId){
+
+    if(!base64)
+        return null;
+
+
+    const match =
+        base64.match(
+            /^data:image\/(jpeg|jpg|png|webp);base64,(.+)$/
+        );
+
+
+    if(!match)
+        throw new Error("INVALID_IMAGE");
+
+
+    const extension =
+        match[1] === "jpg"
+        ? "jpeg"
+        : match[1];
+
+
+    const buffer =
+        Buffer.from(
+            match[2],
+            "base64"
+        );
+
+
+    /*
+       حماية إضافية
+    */
+
+    if(
+        buffer.length >
+        4 * 1024 * 1024
+    ){
+
+        throw new Error(
+            "IMAGE_TOO_LARGE"
+        );
+
+    }
+
+
+    const filename =
+        String(userId) +
+        "-" +
+        Date.now() +
+        "-" +
+        Math.random()
+        .toString(36)
+        .substring(2,10) +
+        "." +
+        extension;
+
+
+    const file =
+        path.join(
+            imageDir,
+            filename
+        );
+
+
+    fs.writeFileSync(
+        file,
+        buffer
+    );
+
+    console.log(
+        "✅ IMAGE SAVED:",
+        file
+    );
+
+    return file;
+
+
+    return filename;
+
+}
+
+
+/*
+   حذف صورة
+*/
+function deleteImage(filename){
+
+    if(!filename)
+        return;
+
+
+    const safeName =
+        path.basename(filename);
+
+
+    const file =
+        path.join(
+            imageDir,
+            safeName
+        );
+
+
+    if(fs.existsSync(file)){
+
+        try{
+
+            fs.unlinkSync(file);
+
+        }catch(error){
+
+            console.error(
+                "Image delete error:",
+                error
+            );
+
+        }
+
+    }
+
+}
+
+
+router.post("/", async (req,res)=>{
+
+    const token =
+        req.headers.authorization?.split(" ")[1];
+
+
+    if(!token){
+
+        return res.json({
+            success:false,
+            message:"يجب تسجيل الدخول"
+        });
+
+    }
+
+
+    const user =
+        auth.verifyToken(token);
+
+
+    if(!user){
+
+        return res.json({
+            success:false,
+            message:"رمز الدخول غير صالح"
+        });
+
+    }
+
+
+    const question =
+        String(
+            req.body.question || ""
+        ).trim();
+
+
+    const conversationId =
+        Number(
+            req.body.conversationId || 0
+        );
+
+
+    let image =
+        req.body.image || null;
+
+    /*
+     * IMAGE MEMORY
+     * إذا ما تصيفطاتش صورة جديدة، نقلبو على آخر صورة
+     * محفوظة فـ نفس المحادثة ونستعملوها من جديد.
+     */
+    if (!image && conversationId) {
+        try {
+            const previousChats = db.loadChats();
+
+            const previousImage = previousChats
+                .filter(chat =>
+                    Number(chat.conversationId) === conversationId &&
+                    String(chat.userId) === String(user.id) &&
+                    chat.imageFile
+                )
+                .sort((a, b) =>
+                    new Date(b.createdAt || 0) -
+                    new Date(a.createdAt || 0)
+                )[0];
+
+            if (previousImage && previousImage.imageFile) {
+                const fs = require("fs");
+                const path = require("path");
+
+                let imagePath =
+                    String(previousImage.imageFile);
+
+                /*
+                 * إذا كان المسار نسبي، نربطوه بمجلد المشروع.
+                 */
+                if (!path.isAbsolute(imagePath)) {
+                    imagePath =
+                        path.resolve(
+                            process.cwd(),
+                            imagePath
+                        );
+                }
+
+                console.log(
+                    "🖼️ IMAGE MEMORY PATH:",
+                    imagePath
+                );
+
+                if (fs.existsSync(imagePath)) {
+
+                    const ext =
+                        path.extname(imagePath)
+                            .replace(".", "")
+                            .toLowerCase();
+
+                    const mime =
+                        ext === "png" ? "image/png" :
+                        ext === "webp" ? "image/webp" :
+                        "image/jpeg";
+
+                    image =
+                        "data:" +
+                        mime +
+                        ";base64," +
+                        fs.readFileSync(imagePath)
+                            .toString("base64");
+
+                    console.log(
+                        "✅ IMAGE MEMORY: previous image restored"
+                    );
+
+                } else {
+
+                    console.log(
+                        "❌ IMAGE MEMORY: file not found:",
+                        imagePath
+                    );
+                }
+            }
+        } catch (error) {
+            console.error(
+                "IMAGE MEMORY ERROR:",
+                error.message
+            );
+        }
+    }
+
+
+    if(!question && !image){
+
+        return res.json({
+            success:false,
+            message:"أرسل سؤالاً أو صورة"
+        });
+
+    }
+
+
+    const settings =
+        db.loadSettings();
+
+    const userSettings =
+        settings[user.id] || {};
+
+    const shouldSaveConversations =
+        userSettings.saveConversations !== false;
+
+    const chats =
+        shouldSaveConversations
+        ? db.loadChats()
+        : [];
+
+    const messages = [
+        {
+            role: "system",
+            content: `أنت UltraAI.
+هويتك الرسمية هي UltraAI.
+إذا سأل المستخدم عن اسمك أو هويتك أو من صنعك أو من طورك أو أي سؤال مشابه، أجب باختصار وثبات أنك UltraAI وأنك تم تطويرك ضمن مشروع UltraAI.
+لا تقل إن اسمك ChatGPT، ولا تنسب هوية UltraAI إلى شركة أو شخص آخر.
+
+أجب بنفس لغة المستخدم فقط.
+إذا كتب المستخدم بالدارجة المغربية، أجب بالدارجة المغربية الطبيعية.
+إذا كتب بالعربية الفصحى، أجب بالعربية الفصحى.
+إذا كتب بالإنجليزية، أجب بالإنجليزية.
+إذا كتب بالفرنسية، أجب بالفرنسية.
+ممنوع خلط اللغات.
+
+مهم جداً:
+- تذكر سياق المحادثة السابقة.
+- اعتبر الأسئلة الجديدة مرتبطة بالأسئلة السابقة ما دامت في نفس المحادثة.
+- إذا قال المستخدم "لا ماشي هداك" أو "السعر هداك غلط" أو "شنو قصدت" أو أي تصحيح، افهم أنه يتحدث عن الجواب السابق.
+- لا تبدأ تحليل المحادثة من الصفر.
+- إذا كانت هناك صورة سابقة في نفس المحادثة، استعملها لفهم الأسئلة اللاحقة.
+- لا تخمن معلومات غير ظاهرة في الصورة.
+- لا تذكر الثمن أو الماركة أو المادة إلا إذا كانت ظاهرة بوضوح.
+- لا تعرض التفكير الداخلي.
+- لا تكتب <think> أو </think>.
+- أعط الجواب النهائي مباشرة.`
+        }
+    ];
+
+
+    /*
+     * CHAT MEMORY
+     * جلب آخر رسائل نفس المحادثة حتى يفهم
+     * السؤال الحالي علاقته بالأسئلة السابقة.
+     */
+
+    if (conversationId) {
+
+        try {
+
+            const previousChats =
+                db.loadChats()
+                    .filter(chat =>
+                        Number(chat.conversationId) === conversationId &&
+                        String(chat.userId) === String(user.id)
+                    )
+                    .sort((a, b) =>
+                        new Date(a.createdAt || 0) -
+                        new Date(b.createdAt || 0)
+                    );
+
+            /*
+             * نأخذ آخر 10 رسائل فقط
+             * حتى لا يكبر الطلب على Groq.
+             */
+
+            const recentChats =
+                previousChats.slice(-10);
+
+            for (const chat of recentChats) {
+
+                if (chat.question) {
+
+                    messages.push({
+                        role: "user",
+                        content: String(chat.question)
+                    });
+
+                }
+
+                if (chat.answer) {
+
+                    messages.push({
+                        role: "assistant",
+                        content: String(chat.answer)
+                    });
+
+                }
+
+            }
+
+            console.log(
+                "🧠 CHAT MEMORY:",
+                recentChats.length,
+                "previous messages restored"
+            );
+
+        } catch (error) {
+
+            console.error(
+                "CHAT MEMORY ERROR:",
+                error.message
+            );
+
+        }
+
+    }
+
+
+    /*
+     * السؤال الحالي
+     */
+
+    if (image) {
+
+        /*
+         * ULTRAAI VISION INTENT
+         * اختيار طريقة التحليل حسب سؤال المستخدم.
+         */
+
+        const q = String(question || "").toLowerCase();
+
+        let visionInstruction;
+
+        if (
+            q.includes("استخرج النص") ||
+            q.includes("استخراج النص") ||
+            q.includes("النص المكتوب") ||
+            q.includes("ماذا كتب") ||
+            q.includes("شنو مكتوب") ||
+            q.includes("اشنو مكتوب") ||
+            q.includes("شنو كاتب") ||
+            q.includes("اشنو كاتب") ||
+            q.includes("مكتوب باللغة")
+        ) {
+
+            visionInstruction = `
+أنت في وضع OCR دقيق.
+
+استخرج النص الظاهر في الصورة فقط.
+
+القواعد:
+- انسخ النص كما يظهر.
+- لا تلخص.
+- لا تعيد صياغة.
+- لا تشرح.
+- حافظ على ترتيب الأسطر قدر الإمكان.
+- اقرأ النص العربي بدقة.
+- اقرأ الأرقام والعناوين والنصوص الصغيرة.
+- إذا كانت هناك صورة داخل Screenshot، اقرأ النص الموجود داخلها أيضاً.
+- لا تخمن.
+- إذا كانت كلمة غير واضحة فعلاً اكتب [غير واضح].
+- ابدأ مباشرة بالنص المستخرج.
+`;
+
+        } else if (
+            q.includes("ترجم") ||
+            q.includes("ترجمة") ||
+            q.includes("translate")
+        ) {
+
+            visionInstruction = `
+أنت في وضع ترجمة النص الموجود في الصورة.
+
+اقرأ النص الموجود في الصورة أولاً بدقة.
+بعد ذلك ترجمه إلى اللغة التي طلبها المستخدم.
+لا تحذف أجزاء من النص ولا تلخصه.
+`;
+
+        } else if (
+            q.includes("صف الصورة") ||
+            q.includes("اوصف الصورة") ||
+            q.includes("ماذا ترى") ||
+            q.includes("شنو كتشوف") ||
+            q.includes("اشنو كتشوف")
+        ) {
+
+            visionInstruction = `
+أنت في وضع وصف الصورة.
+
+صف فقط ما يظهر فعلاً:
+- الأشخاص
+- الأشياء
+- المكان
+- النصوص
+- الألوان
+- التفاصيل المهمة
+
+لا تخمن أي معلومة غير ظاهرة.
+`;
+
+        } else {
+
+            visionInstruction = `
+أنت في وضع تحليل الصور الذكي.
+
+حلل الصورة بناءً على سؤال المستخدم تحديداً.
+
+لا تعط جواباً عاماً أو مكرراً.
+ركز على التفاصيل الموجودة فعلاً في الصورة.
+إذا كان السؤال عن نص، اقرأ النص.
+إذا كان عن شخص، ركز على ما يمكن ملاحظته فقط.
+إذا كان عن منتج أو شيء، حلله بناءً على مظهره.
+إذا كانت هناك معلومات غير واضحة، قل إنها غير واضحة.
+ممنوع اختراع معلومات غير موجودة في الصورة.
+`;
+
+        }
+
+        messages.push({
+
+            role: "user",
+
+            content: [
+
+                {
+                    type: "text",
+                    text:
+                        visionInstruction +
+                        "\n\nسؤال المستخدم:\n" +
+                        (question || "حلل الصورة بدقة.")
+                },
+
+                {
+                    type: "image_url",
+                    image_url: {
+                        url: image
+                    }
+                }
+
+            ]
+
+        });
+
+    } else {
+
+        messages.push({
+
+            role: "user",
+
+            content: question
+
+        });
+
+    }
+
+
+    let answer = "";
+
+
+    try{
+
+        const completion =
+            await groq.chat.completions.create({
+
+                model:
+                    "qwen/qwen3.6-27b",
+
+                reasoning_effort:
+                    "none",
+
+                reasoning_format:
+                    "hidden",
+
+                temperature:
+                    0.2,
+
+max_completion_tokens:
+                    image ? 1200 : 600,
+
+                messages
+
+            });
+
+
+        console.log("===== GROQ RESPONSE =====");
+        console.log(JSON.stringify(completion, null, 2));
+        console.log("===== END GROQ RESPONSE =====");
+
+        const choice = completion && completion.choices
+            ? completion.choices[0]
+            : null;
+
+        answer = "";
+
+        if (choice && choice.message) {
+            answer = String(choice.message.content || "");
+        }
+
+        if (!answer && choice && choice.text) {
+            answer = String(choice.text);
+        }
+
+        /*
+         * تنظيف Qwen reasoning
+         * بدون Regex باش نتفاداو أخطاء JavaScript.
+         */
+        answer = answer.trim();
+
+        const thinkEnd = answer.lastIndexOf("</think>");
+
+        if (thinkEnd !== -1) {
+            answer = answer.substring(thinkEnd + "</think>".length).trim();
+        }
+
+        answer = answer
+            .replaceAll("<think>", "")
+            .replaceAll("</think>", "")
+            .trim();
+
+        /*
+         * إذا كانت صورة:
+         * نخلي الجواب قصير وواضح.
+         */
+        if (image && answer) {
+            const parts = answer
+                .split(/[.!؟\n]+/)
+                .map(x => x.trim())
+                .filter(x => x.length > 0)
+                .slice(0, 3);
+
+            answer = parts.join(". ").trim();
+
+            if (answer && !/[.!؟]$/.test(answer)) {
+                answer += ".";
+            }
+        }
+
+        if (!answer) {
+            answer = "سمح ليا، ماقدرتش نعطيك جواب واضح.";
+        }
+
+        console.log("===== FINAL USER ANSWER =====");
+        console.log(answer);
+        console.log("===== END FINAL ANSWER =====");
+
+    }catch(error){
+
+        console.error(
+            "GROQ CHAT ERROR:",
+            error
+        );
+
+
+        return res.json({
+
+            success:false,
+
+            message:
+                "حدث خطأ أثناء الاتصال بالذكاء الاصطناعي."
+
+        });
+
+    }
+
+
+    let imageFile = null;
+
+
+    /*
+       نحفظ الصورة كملف فقط إذا كان
+       حفظ المحادثات مفعلاً
+    */
+
+    if(
+        image &&
+        shouldSaveConversations
+    ){
+
+        try{
+
+            imageFile =
+                saveImage(
+                    image,
+                    user.id
+                );
+
+        }catch(error){
+
+            console.error(
+                "IMAGE SAVE ERROR:",
+                error
+            );
+
+        }
+
+    }
+
+
+    if(shouldSaveConversations){
+
+        chats.push({
+
+            id:
+                Date.now(),
+
+            conversationId,
+
+            userId:
+                user.id,
+
+            question:
+                question ||
+                "تحليل صورة",
+
+            imageFile:
+                imageFile,
+
+            answer,
+
+            createdAt:
+                new Date().toISOString()
+
+        });
+
+
+        db.saveChats(chats);
+
+
+        const conversations =
+            loadConversations();
+
+
+        const conversation =
+            conversations.find(c =>
+                c.id === conversationId &&
+                c.userId === user.id
+            );
+
+
+        if(conversation){
+
+            if(
+                !conversation.title ||
+                conversation.title === "محادثة جديدة" ||
+                conversation.title === "محادثة"
+            ){
+
+                conversation.title =
+                    makeConversationTitle(
+                        question ||
+                        "تحليل صورة"
+                    );
+
+
+                saveConversations(
+                    conversations
+                );
+
+            }
+
+        }
+
+    }
+
+
+    res.json({
+
+        success:true,
+
+        reply:answer
+
+    });
+
+});
+
+
+module.exports = router;

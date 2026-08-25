@@ -59,21 +59,21 @@ async function generateVideo(imageFile, prompt) {
   const payload = {
     data: [
       imageData,
-      imageData,
-      prompt || "Cinematic smooth camera movement, realistic motion, beautiful lighting",
+      null,
+      prompt || "make this image come alive, cinematic motion, smooth animation",
       4,
-      "blurry, distorted, low quality",
-      0.5,
-      5,
-      5,
-      0,
-      true,
-      5,
-      "FlowMatchEulerDiscrete",
+      "色调艳丽, 过曝, 静态, 细节模糊不清, 字幕, 风格, 作品, 画作, 画面, 静止, 整体发灰, 最差质量, 低质量, JPEG压缩残留, 丑陋的, 残缺的, 多余的手指, 画得不好的手部, 画得不好的脸部, 畸形的, 毁容的, 形态畸形的肢体, 手指融合, 静止不动的画面, 杂乱的背景, 三条腿, 背景人很多, 倒着走",
+      3.5,
+      1,
+      1,
+      42,
+      false,
+      6,
+      "UniPCMultistep",
       3,
       16,
       true,
-      true
+      false
     ]
   };
 
@@ -87,6 +87,10 @@ async function generateVideo(imageFile, prompt) {
 
   const event = JSON.parse(stdout);
 
+  console.log("========== WAN CREATE RESPONSE ==========");
+  console.log(stdout);
+  console.log("=========================================");
+
   if (!event.event_id) {
     throw new Error("لم يتم الحصول على event_id من Wan");
   }
@@ -97,14 +101,22 @@ async function generateVideo(imageFile, prompt) {
     `${HF_SPACE}/gradio_api/call/generate_video/${event.event_id}`
   ]);
 
+  console.log("========== WAN SSE RESULT ==========");
+  console.log(resultText);
+  console.log("====================================");
+
   const urlMarker =
     'https://kulkas2pintu-wan555.hf.space/gradio_api/file=';
 
   const urlStart = resultText.indexOf(urlMarker);
 
+  console.log("========== WAN SSE RESULT ==========");
+  console.log(resultText);
+  console.log("====================================");
+
   if (urlStart === -1) {
     throw new Error(
-      "Wan لم يرجع رابط الفيديو:\n" + resultText.slice(0, 1000)
+      "Wan لم يرجع رابط الفيديو:\n" + resultText.slice(0, 2000)
     );
   }
 

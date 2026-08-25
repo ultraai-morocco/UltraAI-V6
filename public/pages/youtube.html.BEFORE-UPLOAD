@@ -1,0 +1,41 @@
+<div class="youtube-page">
+
+    <div class="youtube-hero">
+        <div class="youtube-icon">▶️</div>
+
+        <h1>Auto YouTube</h1>
+
+        <p>
+            اربط قناتك على YouTube مع UltraAI
+            واستعد للنشر التلقائي للمحتوى.
+        </p>
+    </div>
+
+    <section class="youtube-card">
+
+        <div id="youtubeStatus">
+
+            <div class="youtube-status-icon">
+                🔴
+            </div>
+
+            <h2>قناة YouTube غير مربوطة</h2>
+
+            <p>
+                اربط قناتك للبدء باستخدام ميزات YouTube.
+            </p>
+
+        </div>
+
+        <button
+            id="youtubeConnectPageBtn"
+            type="button"
+            onclick="connectYouTubePage()">
+
+            ▶️ ربط قناة YouTube
+
+        </button>
+
+    </section>
+
+</div>
