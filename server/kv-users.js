@@ -221,7 +221,41 @@ async function findUserByEmail(email) {
                 emailKey(clean)
             );
 
-        return result.value || null;
+        /*
+         * الحساب موجود في Deno KV
+         */
+        if (result.value) {
+            return result.value;
+        }
+
+        /*
+         * MIGRATION:
+         * إذا لم يكن الحساب موجوداً في Deno KV،
+         * نبحث عنه في users.json المحلي/المرفوع مع التطبيق.
+         *
+         * ثم نستعمل saveUser() حتى يتم إنشاء:
+         * by-id
+         * by-email
+         * by-username
+         * by-phone
+         */
+        const users = readUsers();
+
+        const user = users.find(
+            user =>
+                cleanEmail(user.email) === clean
+        );
+
+        if (user) {
+            console.log(
+                "🔄 Migrating user to Deno KV:",
+                user.username
+            );
+
+            return await saveUser(user);
+        }
+
+        return null;
     }
 
     /* NODE / TERMUX */
