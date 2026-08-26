@@ -279,3 +279,61 @@ function bindYouTubeUploadButton() {
 
 window.bindYouTubeUploadButton =
     bindYouTubeUploadButton;
+
+/* FINAL BUTTON BINDING */
+function initYouTubeButtons() {
+
+    const connectBtn =
+        document.getElementById("youtubeConnectPageBtn");
+
+    const uploadBtn =
+        document.getElementById("youtubeUploadBtn");
+
+    if (connectBtn && connectBtn.dataset.bound !== "true") {
+
+        connectBtn.dataset.bound = "true";
+
+        connectBtn.addEventListener("click", function (event) {
+
+            event.preventDefault();
+
+            console.log("🚀 YOUTUBE CONNECT BUTTON CLICK");
+
+            if (typeof window.connectYouTubePage === "function") {
+                window.connectYouTubePage();
+            }
+
+        });
+
+        console.log("✅ YouTube connect button bound");
+    }
+
+    if (uploadBtn && uploadBtn.dataset.bound !== "true") {
+
+        uploadBtn.dataset.bound = "true";
+
+        uploadBtn.addEventListener("click", async function (event) {
+
+            event.preventDefault();
+
+            console.log("🚀 YOUTUBE UPLOAD BUTTON CLICK");
+
+            if (typeof window.uploadYouTubeVideo === "function") {
+                await window.uploadYouTubeVideo();
+            } else {
+                console.error("❌ uploadYouTubeVideo غير موجودة");
+            }
+
+        });
+
+        console.log("✅ YouTube upload button bound");
+    }
+}
+
+window.initYouTubeButtons =
+    initYouTubeButtons;
+
+setTimeout(
+    initYouTubeButtons,
+    100
+);

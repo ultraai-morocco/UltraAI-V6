@@ -208,8 +208,8 @@ async function loadPage(page) {
                     window.loadYouTubePageStatus();
                 }
 
-                if (typeof window.bindYouTubeUploadButton === "function") {
-                    window.bindYouTubeUploadButton();
+                if (typeof window.initYouTubeButtons === "function") {
+                    window.initYouTubeButtons();
                 }
             };
 
