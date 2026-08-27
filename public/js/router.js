@@ -199,7 +199,7 @@ async function loadPage(page) {
             script.id = "youtubeScript";
 
             script.src =
-                "/js/youtube.js?v=20260826";
+                "/js/youtube.js?v=20260827";
 
             script.onload = () => {
                 console.log("✅ YouTube JS loaded");
@@ -210,6 +210,10 @@ async function loadPage(page) {
 
                 if (typeof window.initYouTubeButtons === "function") {
                     window.initYouTubeButtons();
+                }
+
+                if (typeof window.initYouTubeAutoScheduler === "function") {
+                    window.initYouTubeAutoScheduler();
                 }
             };
 

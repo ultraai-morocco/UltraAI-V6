@@ -41,6 +41,69 @@
     </section>
 
     <section
+        id="youtubeAutoSection"
+        class="youtube-card"
+        style="display:none;">
+
+        <h2>🤖 النشر التلقائي على YouTube</h2>
+
+        <div id="youtubeAutoConnection">
+            🟢 YouTube: Connected
+        </div>
+
+        <label>🌅 وقت الصباح</label>
+
+        <input
+            id="youtubeAutoMorningTime"
+            type="time"
+            value="09:00">
+
+        <label>🌙 وقت المساء</label>
+
+        <input
+            id="youtubeAutoEveningTime"
+            type="time"
+            value="20:00">
+
+        <label>🔐 Privacy</label>
+
+        <select id="youtubeAutoPrivacy">
+            <option value="private">Private — خاص</option>
+            <option value="unlisted">Unlisted — غير مدرج</option>
+            <option value="public">Public — عام</option>
+        </select>
+
+        <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:15px;">
+
+            <button
+                id="youtubeAutoSaveBtn"
+                type="button">
+                💾 حفظ الإعدادات
+            </button>
+
+            <button
+                id="youtubeAutoStartBtn"
+                type="button">
+                ▶️ تشغيل النشر التلقائي
+            </button>
+
+            <button
+                id="youtubeAutoStopBtn"
+                type="button"
+                style="display:none;">
+                ⏸️ إيقاف النشر التلقائي
+            </button>
+
+        </div>
+
+        <div
+            id="youtubeAutoStatus"
+            style="margin-top:15px;">
+        </div>
+
+    </section>
+
+    <section
         id="youtubeUploadSection"
         class="youtube-card"
         style="display:none;">

@@ -59,6 +59,24 @@ async function loadYouTubePageStatus() {
                 uploadSection.style.display = "block";
             }
 
+            /* إظهار Auto YouTube */
+            const autoSection =
+                document.getElementById("youtubeAutoSection");
+
+            if (autoSection) {
+                autoSection.style.display = "block";
+                console.log("✅ AUTO YOUTUBE SECTION VISIBLE");
+            }
+
+            /* تحميل إعدادات Auto YouTube */
+            if (typeof bindYouTubeAutoButtons === "function") {
+                bindYouTubeAutoButtons();
+            }
+
+            if (typeof loadYouTubeAutoSettings === "function") {
+                await loadYouTubeAutoSettings();
+            }
+
         }
 
     } catch (error) {
@@ -336,4 +354,546 @@ window.initYouTubeButtons =
 setTimeout(
     initYouTubeButtons,
     100
+);
+
+
+/* =================================================
+   AUTO YOUTUBE SCHEDULER
+================================================= */
+
+async function loadYouTubeAutoSettings() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    const autoSection =
+        document.getElementById("youtubeAutoSection");
+
+    if (!autoSection) return;
+
+    try {
+
+        const response = await fetch(
+            "/youtube-auto/",
+            {
+                headers: {
+                    "Authorization": "Bearer " + token
+                }
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message || "تعذر تحميل إعدادات Auto YouTube"
+            );
+        }
+
+        autoSection.style.display = "block";
+
+        const schedule = data.schedule || {};
+
+        const morning =
+            document.getElementById("youtubeAutoMorningTime");
+
+        const evening =
+            document.getElementById("youtubeAutoEveningTime");
+
+        const privacy =
+            document.getElementById("youtubeAutoPrivacy");
+
+        if (morning) {
+            morning.value =
+                schedule.morningTime || "09:00";
+        }
+
+        if (evening) {
+            evening.value =
+                schedule.eveningTime || "20:00";
+        }
+
+        if (privacy) {
+            privacy.value =
+                schedule.privacyStatus || "private";
+        }
+
+        updateYouTubeAutoUI(schedule);
+
+    } catch (error) {
+
+        console.error(
+            "YouTube Auto settings error:",
+            error
+        );
+    }
+}
+
+
+/* حفظ الإعدادات */
+
+async function saveYouTubeAutoSettings() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("يجب تسجيل الدخول أولاً.");
+        return;
+    }
+
+    const morning =
+        document.getElementById(
+            "youtubeAutoMorningTime"
+        )?.value || "09:00";
+
+    const evening =
+        document.getElementById(
+            "youtubeAutoEveningTime"
+        )?.value || "20:00";
+
+    const privacy =
+        document.getElementById(
+            "youtubeAutoPrivacy"
+        )?.value || "private";
+
+    const button =
+        document.getElementById(
+            "youtubeAutoSaveBtn"
+        );
+
+    const status =
+        document.getElementById(
+            "youtubeAutoStatus"
+        );
+
+    if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(morning)) {
+        alert("وقت الصباح غير صحيح.");
+        return;
+    }
+
+    if (!/^([01]\d|2[0-3]):([0-5]\d)$/.test(evening)) {
+        alert("وقت المساء غير صحيح.");
+        return;
+    }
+
+    if (morning === evening) {
+        alert("اختار وقتين مختلفين للصباح والمساء.");
+        return;
+    }
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "⏳ جاري الحفظ...";
+    }
+
+    try {
+
+        const response = await fetch(
+            "/youtube-auto/settings",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token
+                },
+
+                body: JSON.stringify({
+                    morningTime: morning,
+                    eveningTime: evening,
+                    privacyStatus: privacy
+                })
+            }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message ||
+                "تعذر حفظ إعدادات Auto YouTube."
+            );
+        }
+
+        if (status) {
+            status.innerHTML =
+                "✅ تم حفظ إعدادات النشر التلقائي.";
+        }
+
+        updateYouTubeAutoUI(
+            data.schedule || {}
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Save YouTube Auto error:",
+            error
+        );
+
+        if (status) {
+            status.innerHTML =
+                "❌ " +
+                escapeYouTubeHtml(error.message);
+        }
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "💾 حفظ الإعدادات";
+        }
+    }
+}
+
+
+/* تشغيل */
+
+async function startYouTubeAuto() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("يجب تسجيل الدخول أولاً.");
+        return;
+    }
+
+    const button =
+        document.getElementById(
+            "youtubeAutoStartBtn"
+        );
+
+    const status =
+        document.getElementById(
+            "youtubeAutoStatus"
+        );
+
+    if (button) {
+        button.disabled = true;
+        button.textContent =
+            "⏳ جاري التشغيل...";
+    }
+
+    try {
+
+        const response = await fetch(
+            "/youtube-auto/start",
+            {
+                method: "POST",
+
+                headers: {
+                    "Authorization":
+                        "Bearer " + token
+                }
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message ||
+                "تعذر تشغيل النشر التلقائي."
+            );
+        }
+
+        if (status) {
+            status.innerHTML =
+                "🟢 النشر التلقائي على YouTube شغال الآن.";
+        }
+
+        updateYouTubeAutoUI(
+            data.schedule || {}
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Start YouTube Auto error:",
+            error
+        );
+
+        if (status) {
+            status.innerHTML =
+                "❌ " +
+                escapeYouTubeHtml(error.message);
+        }
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "▶️ تشغيل النشر التلقائي";
+        }
+    }
+}
+
+
+/* إيقاف */
+
+async function stopYouTubeAuto() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("يجب تسجيل الدخول أولاً.");
+        return;
+    }
+
+    const button =
+        document.getElementById(
+            "youtubeAutoStopBtn"
+        );
+
+    const status =
+        document.getElementById(
+            "youtubeAutoStatus"
+        );
+
+    if (button) {
+        button.disabled = true;
+        button.textContent =
+            "⏳ جاري الإيقاف...";
+    }
+
+    try {
+
+        const response = await fetch(
+            "/youtube-auto/stop",
+            {
+                method: "POST",
+
+                headers: {
+                    "Authorization":
+                        "Bearer " + token
+                }
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message ||
+                "تعذر إيقاف النشر التلقائي."
+            );
+        }
+
+        if (status) {
+            status.innerHTML =
+                "⏸️ تم إيقاف النشر التلقائي.";
+        }
+
+        updateYouTubeAutoUI(
+            data.schedule || {}
+        );
+
+    } catch (error) {
+
+        console.error(
+            "Stop YouTube Auto error:",
+            error
+        );
+
+        if (status) {
+            status.innerHTML =
+                "❌ " +
+                escapeYouTubeHtml(error.message);
+        }
+
+    } finally {
+
+        if (button) {
+            button.disabled = false;
+            button.textContent =
+                "⏸️ إيقاف النشر التلقائي";
+        }
+    }
+}
+
+
+/* تحديث الحالة في الواجهة */
+
+function updateYouTubeAutoUI(schedule) {
+
+    const startBtn =
+        document.getElementById(
+            "youtubeAutoStartBtn"
+        );
+
+    const stopBtn =
+        document.getElementById(
+            "youtubeAutoStopBtn"
+        );
+
+    const status =
+        document.getElementById(
+            "youtubeAutoStatus"
+        );
+
+    if (!schedule) return;
+
+    if (schedule.enabled === true) {
+
+        if (startBtn) {
+            startBtn.style.display = "none";
+        }
+
+        if (stopBtn) {
+            stopBtn.style.display = "inline-block";
+        }
+
+        if (status) {
+            status.innerHTML =
+                "🟢 النشر التلقائي مفعّل<br>" +
+                "🌅 " +
+                escapeYouTubeHtml(
+                    schedule.morningTime || "09:00"
+                ) +
+                " — " +
+                "🌙 " +
+                escapeYouTubeHtml(
+                    schedule.eveningTime || "20:00"
+                );
+        }
+
+    } else {
+
+        if (startBtn) {
+            startBtn.style.display = "inline-block";
+        }
+
+        if (stopBtn) {
+            stopBtn.style.display = "none";
+        }
+
+        if (status) {
+            status.innerHTML =
+                "⚪ النشر التلقائي متوقف.";
+        }
+    }
+}
+
+
+/* ربط أزرار Auto YouTube */
+
+function bindYouTubeAutoButtons() {
+
+    const saveBtn =
+        document.getElementById(
+            "youtubeAutoSaveBtn"
+        );
+
+    const startBtn =
+        document.getElementById(
+            "youtubeAutoStartBtn"
+        );
+
+    const stopBtn =
+        document.getElementById(
+            "youtubeAutoStopBtn"
+        );
+
+    if (saveBtn &&
+        saveBtn.dataset.bound !== "true") {
+
+        saveBtn.dataset.bound = "true";
+
+        saveBtn.addEventListener(
+            "click",
+            saveYouTubeAutoSettings
+        );
+    }
+
+    if (startBtn &&
+        startBtn.dataset.bound !== "true") {
+
+        startBtn.dataset.bound = "true";
+
+        startBtn.addEventListener(
+            "click",
+            startYouTubeAuto
+        );
+    }
+
+    if (stopBtn &&
+        stopBtn.dataset.bound !== "true") {
+
+        stopBtn.dataset.bound = "true";
+
+        stopBtn.addEventListener(
+            "click",
+            stopYouTubeAuto
+        );
+    }
+}
+
+
+
+
+/* تشغيل Auto YouTube عند تحميل الصفحة */
+
+async function initYouTubeAutoScheduler() {
+
+    const token =
+        localStorage.getItem("token");
+
+    if (!token) return;
+
+    try {
+
+        const response =
+            await fetch(
+                "/youtube/status",
+                {
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            data.success &&
+            data.connected === true
+        ) {
+            bindYouTubeAutoButtons();
+            await loadYouTubeAutoSettings();
+        }
+
+    } catch (error) {
+
+        console.error(
+            "YouTube Auto init error:",
+            error
+        );
+    }
+}
+
+window.saveYouTubeAutoSettings =
+    saveYouTubeAutoSettings;
+
+window.startYouTubeAuto =
+    startYouTubeAuto;
+
+window.stopYouTubeAuto =
+    stopYouTubeAuto;
+
+window.loadYouTubeAutoSettings =
+    loadYouTubeAutoSettings;
+
+window.initYouTubeAutoScheduler =
+    initYouTubeAutoScheduler;
+
+setTimeout(
+    initYouTubeAutoScheduler,
+    300
 );

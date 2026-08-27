@@ -3,6 +3,7 @@ const crypto = require("crypto");
 const { google } = require("googleapis");
 const multer = require("multer");
 const fs = require("fs");
+const path = require("path");
 
 const router = express.Router();
 
@@ -456,6 +457,350 @@ router.post("/upload", youtubeUpload.single("video"), async (req, res) => {
 });
 
 
+
+
+/* =========================================
+   INTERNAL AUTO YOUTUBE UPLOAD
+   تستعمل من Auto YouTube Runner
+========================================= */
+async function uploadGeneratedVideo({
+  user,
+  videoPath,
+  title,
+  description,
+  privacyStatus
+}) {
+  const youtube = user?.youtube || {};
+
+  if (
+    youtube.connected !== true ||
+    !youtube.refreshToken
+  ) {
+    throw new Error(
+      "يجب ربط قناة YouTube أولاً."
+    );
+  }
+
+  const cleanPath =
+    String(videoPath || "")
+      .replace(/^\/+/, "");
+
+  const publicRoot =
+    path.resolve(
+      __dirname,
+      "..",
+      "..",
+      "public"
+    );
+
+  const videoFile =
+    path.resolve(
+      publicRoot,
+      cleanPath
+    );
+
+  if (
+    !videoFile.startsWith(publicRoot + path.sep) &&
+    videoFile !== publicRoot
+  ) {
+    throw new Error(
+      "مسار الفيديو غير صالح."
+    );
+  }
+
+  if (!fs.existsSync(videoFile)) {
+    throw new Error(
+      "ملف الفيديو غير موجود."
+    );
+  }
+
+  const stat = fs.statSync(videoFile);
+
+  if (!stat.isFile() || stat.size === 0) {
+    throw new Error(
+      "ملف الفيديو غير صالح."
+    );
+  }
+
+  const cleanTitle =
+    String(title || "").trim();
+
+  const cleanDescription =
+    String(description || "").trim();
+
+  const cleanPrivacy =
+    ["public", "unlisted", "private"]
+      .includes(privacyStatus)
+      ? privacyStatus
+      : "private";
+
+  if (!cleanTitle) {
+    throw new Error(
+      "عنوان الفيديو مطلوب."
+    );
+  }
+
+  console.log(
+    "📤 INTERNAL AUTO YOUTUBE UPLOAD:",
+    videoFile
+  );
+
+  const oauth2Client =
+    getOAuthClient();
+
+  oauth2Client.setCredentials({
+    refresh_token:
+      youtube.refreshToken
+  });
+
+  const youtubeApi =
+    google.youtube({
+      version: "v3",
+      auth: oauth2Client
+    });
+
+  const result =
+    await youtubeApi.videos.insert({
+      part: "snippet,status",
+
+      requestBody: {
+        snippet: {
+          title: cleanTitle,
+          description: cleanDescription
+        },
+
+        status: {
+          privacyStatus:
+            cleanPrivacy
+        }
+      },
+
+      media: {
+        mimeType: "video/mp4",
+        body:
+          fs.createReadStream(
+            videoFile
+          )
+      }
+    });
+
+  const videoId =
+    result.data.id;
+
+  const url =
+    `https://www.youtube.com/watch?v=${videoId}`;
+
+  console.log(
+    "✅ INTERNAL AUTO YOUTUBE PUBLISHED:",
+    videoId
+  );
+
+  return {
+    success: true,
+    videoId,
+    url
+  };
+}
+
+/* =========================================
+   PUBLISH GENERATED AUTO CONTENT VIDEO
+========================================= */
+
+router.post("/upload-generated", async (req, res) => {
+
+  try {
+
+    const user = await getUserFromRequest(req);
+
+    if (!user) {
+      return res.status(401).json({
+        success: false,
+        message: "يجب تسجيل الدخول إلى UltraAI أولاً."
+      });
+    }
+
+    const youtube = user.youtube || {};
+
+    if (
+      youtube.connected !== true ||
+      !youtube.refreshToken
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "يجب ربط قناة YouTube أولاً."
+      });
+    }
+
+    const {
+      videoPath,
+      title,
+      description,
+      privacyStatus
+    } = req.body || {};
+
+    if (!videoPath) {
+      return res.status(400).json({
+        success: false,
+        message: "مسار الفيديو مطلوب."
+      });
+    }
+
+    const cleanPath =
+      String(videoPath)
+        .replace(/^\/+/, "");
+
+    const publicRoot =
+      path.resolve(
+        __dirname,
+        "..",
+        "..",
+        "public"
+      );
+
+    const videoFile =
+      path.resolve(
+        publicRoot,
+        cleanPath
+      );
+
+    if (
+      !videoFile.startsWith(publicRoot + path.sep) &&
+      videoFile !== publicRoot
+    ) {
+      return res.status(400).json({
+        success: false,
+        message: "مسار الفيديو غير صالح."
+      });
+    }
+
+    if (!fs.existsSync(videoFile)) {
+      return res.status(404).json({
+        success: false,
+        message: "ملف الفيديو غير موجود."
+      });
+    }
+
+    const stat =
+      fs.statSync(videoFile);
+
+    if (!stat.isFile() || stat.size === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "ملف الفيديو غير صالح."
+      });
+    }
+
+    const cleanTitle =
+      String(title || "").trim();
+
+    const cleanDescription =
+      String(description || "").trim();
+
+    const cleanPrivacy =
+      ["public", "unlisted", "private"]
+        .includes(privacyStatus)
+        ? privacyStatus
+        : "private";
+
+    if (!cleanTitle) {
+      return res.status(400).json({
+        success: false,
+        message: "عنوان الفيديو مطلوب."
+      });
+    }
+
+    console.log(
+      "📤 AUTO YOUTUBE UPLOAD:",
+      videoFile
+    );
+
+    const oauth2Client =
+      getOAuthClient();
+
+    oauth2Client.setCredentials({
+      refresh_token:
+        youtube.refreshToken
+    });
+
+    const youtubeApi =
+      google.youtube({
+        version: "v3",
+        auth: oauth2Client
+      });
+
+    const result =
+      await youtubeApi.videos.insert({
+
+        part: "snippet,status",
+
+        requestBody: {
+
+          snippet: {
+            title: cleanTitle,
+            description: cleanDescription
+          },
+
+          status: {
+            privacyStatus: cleanPrivacy
+          }
+
+        },
+
+        media: {
+          mimeType: "video/mp4",
+          body: fs.createReadStream(videoFile)
+        }
+
+      });
+
+    const videoId =
+      result.data.id;
+
+    console.log(
+      "✅ AUTO YOUTUBE PUBLISHED:",
+      videoId
+    );
+
+    return res.json({
+
+      success: true,
+
+      message:
+        "تم نشر الفيديو على YouTube بنجاح ✅",
+
+      videoId,
+
+      url:
+        `https://www.youtube.com/watch?v=${videoId}`
+
+    });
+
+  } catch (err) {
+
+    console.error(
+      "AUTO YOUTUBE UPLOAD ERROR:",
+      err
+    );
+
+    let message =
+      "تعذر نشر الفيديو على YouTube.";
+
+    if (
+      err.code === 401 ||
+      err.code === 403
+    ) {
+      message =
+        "انتهت صلاحية ربط YouTube أو لا توجد صلاحية للنشر.";
+    }
+
+    return res.status(500).json({
+      success: false,
+      message
+    });
+  }
+
+});
+
 /* معرفة حالة الربط */
 router.get("/status", async (req, res) => {
   try {
@@ -488,5 +833,7 @@ router.get("/status", async (req, res) => {
     });
   }
 });
+
+router.uploadGeneratedVideo = uploadGeneratedVideo;
 
 module.exports = router;
