@@ -428,6 +428,7 @@ app.use("/auto-content", require("./routes/auto-content"));
 app.use("/ideas-save", require("./routes/ideas-save"));
 app.use("/ideas-list", require("./routes/ideas-list"));
 app.use("/ideas-delete", require("./routes/ideas-delete"));
+app.use("/tiktok", require("./routes/tiktok-oauth"));
 app.use("/tiktok-access", require("./routes/tiktok-access"));
 app.use("/ideas-update", require("./routes/ideas-update"));
 app.use("/ai-history", require("./routes/ai-history"));
