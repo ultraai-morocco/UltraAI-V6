@@ -26,7 +26,7 @@ function getUserId(req) {
  *
  * جلب إعدادات المستخدم
  */
-router.get("/", authMiddleware, (req, res) => {
+router.get("/", authMiddleware, async (req, res) => {
   try {
     const userId = getUserId(req);
 
@@ -37,7 +37,7 @@ router.get("/", authMiddleware, (req, res) => {
       });
     }
 
-    const schedule = getUserSchedule(userId);
+    const schedule = await getUserSchedule(userId);
 
     return res.json({
       success: true,
@@ -68,7 +68,7 @@ router.get("/", authMiddleware, (req, res) => {
 router.post(
   "/settings",
   authMiddleware,
-  (req, res) => {
+  async (req, res) => {
 
     try {
 
@@ -116,7 +116,7 @@ router.post(
           ? privacyStatus
           : "private";
 
-      const schedule = saveUserSchedule(
+      const schedule = await saveUserSchedule(
         userId,
         {
           enabled: false,
@@ -157,7 +157,7 @@ router.post(
 router.post(
   "/start",
   authMiddleware,
-  (req, res) => {
+  async (req, res) => {
 
     try {
 
@@ -171,10 +171,10 @@ router.post(
       }
 
       const oldSchedule =
-        getUserSchedule(userId) || {};
+        await getUserSchedule(userId) || {};
 
       const schedule =
-        saveUserSchedule(
+        await saveUserSchedule(
           userId,
           {
             ...oldSchedule,
@@ -216,7 +216,7 @@ router.post(
 router.post(
   "/stop",
   authMiddleware,
-  (req, res) => {
+  async (req, res) => {
 
     try {
 
@@ -230,10 +230,10 @@ router.post(
       }
 
       const oldSchedule =
-        getUserSchedule(userId) || {};
+        await getUserSchedule(userId) || {};
 
       const schedule =
-        saveUserSchedule(
+        await saveUserSchedule(
           userId,
           {
             ...oldSchedule,

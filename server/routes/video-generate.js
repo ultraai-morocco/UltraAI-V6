@@ -222,4 +222,6 @@ router.post("/", async (req, res) => {
   }
 });
 
+router.generateVideo = generateVideo;
+
 module.exports = router;

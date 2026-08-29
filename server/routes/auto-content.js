@@ -12,6 +12,9 @@ const execFileAsync = promisify(execFile);
 
 const authMiddleware = require("../middleware/auth");
 
+const videoGenerator =
+    require("./video-generate");
+
 const GroqClient = new Groq({
     apiKey: process.env.GROQ_API_KEY
 });
@@ -754,6 +757,188 @@ ${languageName}
                 message:
                     error.message ||
                     "تعذر توليد المحتوى حالياً."
+            });
+        }
+    }
+);
+
+
+
+/* =================================================
+   GENERATE VIDEO FOR AUTO CONTENT
+================================================= */
+
+router.post(
+    "/video",
+    authMiddleware,
+    async (req, res) => {
+
+        try {
+
+            const {
+                contentId,
+                slot
+            } = req.body || {};
+
+            if (!contentId) {
+                return res.status(400).json({
+                    success: false,
+                    message: "معرف المحتوى مطلوب."
+                });
+            }
+
+            if (!["morning", "evening"].includes(slot)) {
+                return res.status(400).json({
+                    success: false,
+                    message: "نوع المنشور غير صحيح."
+                });
+            }
+
+            const userId =
+                req.user.id ||
+                req.user.userId ||
+                req.user._id;
+
+            if (!userId) {
+                return res.status(401).json({
+                    success: false,
+                    message: "تعذر تحديد المستخدم."
+                });
+            }
+
+            const data = loadData();
+
+            const item = data.find(
+                entry =>
+                    String(entry.id) === String(contentId) &&
+                    String(entry.userId) === String(userId)
+            );
+
+            if (!item) {
+                return res.status(404).json({
+                    success: false,
+                    message: "المحتوى غير موجود."
+                });
+            }
+
+            const post = item[slot];
+
+            if (!post || !post.image) {
+                return res.status(400).json({
+                    success: false,
+                    message: "صورة المنشور غير موجودة."
+                });
+            }
+
+            if (
+                post.video &&
+                String(post.video).trim()
+            ) {
+                return res.json({
+                    success: true,
+                    video: post.video,
+                    message: "الفيديو موجود مسبقاً."
+                });
+            }
+
+            const imagePath =
+                path.join(
+                    __dirname,
+                    "..",
+                    "..",
+                    "public",
+                    post.image.replace(/^\/+/, "")
+                );
+
+            if (!fs.existsSync(imagePath)) {
+                return res.status(404).json({
+                    success: false,
+                    message: "ملف الصورة غير موجود على السيرفر."
+                });
+            }
+
+            console.log(
+                `🎬 AUTO VIDEO START: ${slot}`
+            );
+
+            const videoUrl =
+                await videoGenerator.generateVideo(
+                    imagePath,
+                    post.script ||
+                    post.hook ||
+                    "smooth cinematic motion, natural movement, realistic camera movement"
+                );
+
+            const filename =
+                `auto-video-${crypto.randomUUID()}.mp4`;
+
+            const outputPath =
+                path.join(
+                    __dirname,
+                    "..",
+                    "..",
+                    "public",
+                    "generated-videos",
+                    filename
+                );
+
+            fs.mkdirSync(
+                path.dirname(outputPath),
+                { recursive: true }
+            );
+
+            await execFileAsync("curl", [
+                "-L",
+                "--fail",
+                "--silent",
+                "--show-error",
+                videoUrl,
+                "-o",
+                outputPath
+            ]);
+
+            if (
+                !fs.existsSync(outputPath) ||
+                fs.statSync(outputPath).size === 0
+            ) {
+                throw new Error(
+                    "فشل حفظ الفيديو المولد."
+                );
+            }
+
+            const publicVideo =
+                `/generated-videos/${filename}`;
+
+            item[slot].video =
+                publicVideo;
+
+            saveData(data);
+
+            console.log(
+                "✅ AUTO VIDEO SAVED:",
+                publicVideo
+            );
+
+            return res.json({
+                success: true,
+                video: publicVideo,
+                contentId,
+                slot,
+                message: "تم توليد الفيديو بنجاح."
+            });
+
+        } catch (error) {
+
+            console.error(
+                "AUTO VIDEO ERROR:",
+                error
+            );
+
+            return res.status(500).json({
+                success: false,
+                message:
+                    error.message ||
+                    "تعذر توليد الفيديو."
             });
         }
     }

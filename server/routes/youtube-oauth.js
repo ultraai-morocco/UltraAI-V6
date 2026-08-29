@@ -215,8 +215,15 @@ router.get("/callback", async (req, res) => {
       );
     }
 
+    console.log("🔎 OAUTH STATE USER:", stateData.userId);
+
     const user =
-      await kvUsers.findUserById(stateData.userId);
+      await kvUsers.findUserById(String(stateData.userId));
+
+    console.log("🔎 OAUTH USER FOUND:", {
+      found: !!user,
+      id: user?.id || null
+    });
 
     if (!user) {
       return res.status(404).send(
@@ -229,10 +236,15 @@ router.get("/callback", async (req, res) => {
     const { tokens } =
       await oauth2Client.getToken(code);
 
+    console.log("✅ GOOGLE OAUTH TOKENS RECEIVED:", {
+      hasAccessToken: !!tokens.access_token,
+      hasRefreshToken: !!tokens.refresh_token,
+      expiryDate: tokens.expiry_date || null
+    });
+
     /*
      * Google may not return a refresh_token when the
      * account has already granted access.
-     * لذلك نحافظو على refresh token القديم إذا كان موجود.
      */
     const oldYouTube = user.youtube || {};
 
@@ -268,13 +280,26 @@ router.get("/callback", async (req, res) => {
         new Date().toISOString()
     };
 
-    await kvUsers.updateYouTube(
-      user.id,
-      youtubeData
-    );
+    const savedUser =
+      await kvUsers.updateYouTube(
+        user.id,
+        youtubeData
+      );
+
+    const savedYouTube =
+      savedUser?.youtube || {};
+
+    if (
+      savedYouTube.connected !== true ||
+      !savedYouTube.refreshToken
+    ) {
+      throw new Error(
+        "YOUTUBE_SAVE_VERIFICATION_FAILED"
+      );
+    }
 
     console.log(
-      "YouTube connected successfully for user:",
+      "✅ YouTube connected and saved successfully:",
       user.id
     );
 

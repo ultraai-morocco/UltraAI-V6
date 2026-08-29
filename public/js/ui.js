@@ -238,6 +238,11 @@ function createSideMenu(){
                     <b>Video AI</b>
                 </button>
 
+                <button onclick="openFromMenu('auto-content')">
+                    <span>🤖</span>
+                    <b>Auto Content</b>
+                </button>
+
                 <button onclick="openFromMenu('memory')">
                     <span>🧠</span>
                     <b>الذاكرة</b>

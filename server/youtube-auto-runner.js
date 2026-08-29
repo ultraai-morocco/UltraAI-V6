@@ -9,8 +9,13 @@ const execFileAsync = promisify(execFile);
 const {
   loadData,
   saveData,
-  getUserSchedule
+  getUserSchedule,
+  getAllSchedules
 } = require("./youtube-auto-scheduler");
+
+const {
+  findUserById
+} = require("./kv-users");
 
 const USERS_FILE = path.join(
   __dirname,
@@ -62,14 +67,45 @@ function saveJson(file, data) {
   );
 }
 
-function getUser(userId) {
-  const users = loadJson(USERS_FILE, []);
+async function getUser(userId) {
 
-  if (!Array.isArray(users)) return null;
+  /*
+   * Deno Deploy -> Deno KV
+   */
+  try {
 
-  return users.find(
-    user =>
-      String(user.id) === String(userId)
+    const user =
+      await findUserById(userId);
+
+    if (user) {
+      return user;
+    }
+
+  } catch (error) {
+
+    console.error(
+      "YOUTUBE AUTO KV USER ERROR:",
+      error.message
+    );
+
+  }
+
+  /*
+   * Termux / Node fallback
+   */
+  const users =
+    loadJson(USERS_FILE, []);
+
+  if (!Array.isArray(users)) {
+    return null;
+  }
+
+  return (
+    users.find(
+      user =>
+        String(user.id) ===
+        String(userId)
+    ) || null
   );
 }
 
@@ -111,14 +147,14 @@ function alreadyPublished(schedule, slot) {
   );
 }
 
-function markPublished(
+async function markPublished(
   userId,
   slot,
   videoId,
   url
 ) {
   const schedule =
-    getUserSchedule(userId) || {};
+    await getUserSchedule(userId) || {};
 
   const key =
     `${todayKey()}-${slot}`;
@@ -138,33 +174,17 @@ function markPublished(
   const trimmed =
     slots.slice(-60);
 
-  const all =
-    loadJson(
-      path.join(
-        __dirname,
-        "data",
-        "youtube-auto.json"
-      ),
-      {}
-    );
-
-  all[String(userId)] = {
-    ...schedule,
-    publishedSlots: trimmed,
-    lastPublishedAt:
-      new Date().toISOString(),
-    lastPublishedSlot: slot,
-    lastVideoId: videoId || null,
-    lastVideoUrl: url || null
-  };
-
-  saveJson(
-    path.join(
-      __dirname,
-      "data",
-      "youtube-auto.json"
-    ),
-    all
+  await saveUserSchedule(
+    userId,
+    {
+      ...schedule,
+      publishedSlots: trimmed,
+      lastPublishedAt:
+        new Date().toISOString(),
+      lastPublishedSlot: slot,
+      lastVideoId: videoId || null,
+      lastVideoUrl: url || null
+    }
   );
 }
 
@@ -331,8 +351,7 @@ async function uploadToYouTube(
   post,
   privacyStatus
 ) {
-  const user =
-    getUser(userId);
+  const user = await getUser(userId);
 
   if (!user) {
     throw new Error(
@@ -391,7 +410,7 @@ async function runSlot(
   slot
 ) {
   const schedule =
-    getUserSchedule(userId);
+    await getUserSchedule(userId);
 
   if (
     !schedule ||
@@ -471,7 +490,7 @@ async function runSlot(
         schedule.privacyStatus
       );
 
-    markPublished(
+    await markPublished(
       userId,
       slot,
       result?.videoId,
@@ -509,25 +528,26 @@ async function tick() {
   try {
 
     const schedules =
-      loadJson(
-        path.join(
-          __dirname,
-          "data",
-          "youtube-auto.json"
-        ),
-        {}
-      );
+      await getAllSchedules();
 
     const time =
       currentTime();
 
     for (
-      const userId of
-      Object.keys(schedules)
+      const schedule of
+      schedules
     ) {
 
-      const schedule =
-        schedules[userId];
+      if (!schedule) {
+        continue;
+      }
+
+      const userId =
+        schedule.userId;
+
+      if (!userId) {
+        continue;
+      }
 
       if (
         !schedule ||
