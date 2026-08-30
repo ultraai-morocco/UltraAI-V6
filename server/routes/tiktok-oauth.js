@@ -252,7 +252,7 @@ router.get("/login", async (req, res) => {
                     "code",
 
                 scope:
-                    "user.info.basic,video.publish,video.upload",
+                    "user.info.basic video.publish video.upload",
 
                 redirect_uri:
                     redirectUri,
