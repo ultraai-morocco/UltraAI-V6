@@ -105,21 +105,32 @@ router.get("/callback", async (req, res) => {
 
         console.log(
             "TikTok token response:",
-            tokenData
+            {
+                success: !!tokenData.access_token,
+                open_id: tokenData.open_id || null
+            }
         );
 
         if (!tokenResponse.ok || !tokenData.access_token) {
             return res.status(400).json({
                 success: false,
-                error: "TikTok token exchange failed",
-                details: tokenData
+                error: "TikTok token exchange failed"
             });
         }
 
         /*
-         * حالياً غير مخزنين الـ token.
-         * أولاً نتأكد أن OAuth خدام.
+         * نخزن بيانات TikTok في الذاكرة مؤقتاً.
+         * من بعد نقدروا نبدلوها إلى تخزين دائم.
          */
+        global.tiktokAuth = {
+            accessToken: tokenData.access_token,
+            refreshToken: tokenData.refresh_token || null,
+            openId: tokenData.open_id || null,
+            expiresIn: tokenData.expires_in || null,
+            refreshExpiresIn: tokenData.refresh_expires_in || null,
+            connectedAt: new Date().toISOString()
+        };
+
         res.send(`
             <!doctype html>
             <html lang="ar">
