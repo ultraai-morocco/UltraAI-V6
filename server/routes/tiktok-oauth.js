@@ -1,5 +1,6 @@
 const express = require("express");
 const crypto = require("crypto");
+const auth = require("../auth");
 const authMiddleware = require("../middleware/auth");
 const kvUsers = require("../kv-users");
 
@@ -37,21 +38,41 @@ router.get("/test", (req, res) => {
 /*
  * بدء تسجيل الدخول إلى TikTok
  */
-router.get("/login", authMiddleware, (req, res) => {
+router.get("/login", (req, res) => {
     try {
         const { clientKey, redirectUri } = getConfig();
+
+        const token =
+            req.query.token ||
+            req.headers.authorization?.split(" ")[1];
+
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "❌ يجب تسجيل الدخول."
+            });
+        }
+
+        const user = auth.verifyToken(token);
+
+        if (!user) {
+            return res.status(403).json({
+                success: false,
+                message: "🚫 الجلسة غير صالحة."
+            });
+        }
 
         const state = crypto.randomBytes(32).toString("hex");
 
         oauthStates.set(state, {
-            userId: req.user.id,
+            userId: user.id || user.userId || user._id,
             createdAt: Date.now()
         });
 
         const params = new URLSearchParams({
             client_key: clientKey,
             response_type: "code",
-            scope: "user.info.basic,video.publish",
+            scope: "user.info.basic,video.upload",
             redirect_uri: redirectUri,
             state
         });
@@ -222,13 +243,20 @@ router.get("/callback", async (req, res) => {
 
 router.get("/status", authMiddleware, async (req, res) => {
     try {
-        const userId = req.user?.id;
+        const userId =
+            req.user?.id ||
+            req.user?.userId ||
+            req.user?._id;
+
+        console.log("🎵 TikTok STATUS USER:", {
+            userId: userId || null
+        });
 
         if (!userId) {
             return res.status(401).json({
                 success: false,
                 connected: false,
-                message: "يجب تسجيل الدخول إلى UltraAI أولاً."
+                message: "تعذر تحديد المستخدم."
             });
         }
 
