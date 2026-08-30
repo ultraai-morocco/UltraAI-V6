@@ -782,3 +782,53 @@ window.publishAutoVideoToYouTube =
 
 window.generateAutoVideo =
     generateAutoVideo;
+
+/* =========================================
+   TIKTOK OAUTH
+========================================= */
+
+async function connectTikTok() {
+
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("يجب تسجيل الدخول إلى UltraAI أولاً.");
+        return;
+    }
+
+    const button =
+        document.getElementById("tiktokConnectBtn");
+
+    if (button) {
+        button.disabled = true;
+        button.textContent = "⏳ جاري فتح TikTok...";
+    }
+
+    try {
+
+        const url =
+            "/tiktok/login?token=" +
+            encodeURIComponent(token);
+
+        window.location.href = url;
+
+    } catch (error) {
+
+        console.error(
+            "TikTok connect error:",
+            error
+        );
+
+        alert(
+            "تعذر بدء ربط TikTok."
+        );
+
+        if (button) {
+            button.disabled = false;
+            button.textContent = "🎵 ربط TikTok";
+        }
+    }
+}
+
+window.connectTikTok = connectTikTok;
+

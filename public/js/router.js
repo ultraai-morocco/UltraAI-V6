@@ -157,7 +157,7 @@ async function loadPage(page) {
                     "autoContentScript";
 
                 script.src =
-                    "/js/auto-content.js?v=20260820-tiktok-access";
+                    "/js/auto-content.js?v=20260830-tiktok-oauth";
 
                 script.onload = () => {
                     console.log(
