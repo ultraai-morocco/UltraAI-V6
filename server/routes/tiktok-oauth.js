@@ -28,6 +28,66 @@ function getConfig() {
  */
 const oauthStates = new Map();
 
+async function saveOAuthState(state, data) {
+    if (
+        typeof Deno !== "undefined" &&
+        typeof Deno.openKv === "function"
+    ) {
+        if (!globalThis.__ultraaiTikTokKV) {
+            globalThis.__ultraaiTikTokKV = await Deno.openKv();
+        }
+
+        await globalThis.__ultraaiTikTokKV.set(
+            ["ultraai", "tiktok", "oauth-state", state],
+            data,
+            { expireIn: 10 * 60 * 1000 }
+        );
+
+        return;
+    }
+
+    oauthStates.set(state, data);
+}
+
+async function getOAuthState(state) {
+    if (
+        typeof Deno !== "undefined" &&
+        typeof Deno.openKv === "function"
+    ) {
+        if (!globalThis.__ultraaiTikTokKV) {
+            globalThis.__ultraaiTikTokKV = await Deno.openKv();
+        }
+
+        const result =
+            await globalThis.__ultraaiTikTokKV.get(
+                ["ultraai", "tiktok", "oauth-state", state]
+            );
+
+        return result.value || null;
+    }
+
+    return oauthStates.get(state) || null;
+}
+
+async function deleteOAuthState(state) {
+    if (
+        typeof Deno !== "undefined" &&
+        typeof Deno.openKv === "function"
+    ) {
+        if (!globalThis.__ultraaiTikTokKV) {
+            globalThis.__ultraaiTikTokKV = await Deno.openKv();
+        }
+
+        await globalThis.__ultraaiTikTokKV.delete(
+            ["ultraai", "tiktok", "oauth-state", state]
+        );
+
+        return;
+    }
+
+    await deleteOAuthState(state);
+}
+
 router.get("/test", (req, res) => {
     res.json({
         success: true,
@@ -38,7 +98,7 @@ router.get("/test", (req, res) => {
 /*
  * بدء تسجيل الدخول إلى TikTok
  */
-router.get("/login", (req, res) => {
+router.get("/login", async (req, res) => {
     try {
         const { clientKey, redirectUri } = getConfig();
 
@@ -64,7 +124,7 @@ router.get("/login", (req, res) => {
 
         const state = crypto.randomBytes(32).toString("hex");
 
-        oauthStates.set(state, {
+        await saveOAuthState(state, {
             userId: user.id || user.userId || user._id,
             createdAt: Date.now()
         });
@@ -111,7 +171,7 @@ router.get("/callback", async (req, res) => {
             );
         }
 
-        const stateData = oauthStates.get(state);
+        const stateData = await getOAuthState(state);
 
         if (!stateData) {
             return res.status(400).send(
@@ -119,7 +179,7 @@ router.get("/callback", async (req, res) => {
             );
         }
 
-        oauthStates.delete(state);
+        await deleteOAuthState(state);
 
         /*
          * صلاحية state: 10 دقائق
