@@ -82,10 +82,11 @@ async function deleteOAuthState(state) {
             ["ultraai", "tiktok", "oauth-state", state]
         );
 
-        return;
+        return true;
     }
 
-    await deleteOAuthState(state);
+    oauthStates.delete(state);
+    return true;
 }
 
 router.get("/test", (req, res) => {
