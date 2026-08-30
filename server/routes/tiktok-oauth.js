@@ -23,70 +23,154 @@ function getConfig() {
 }
 
 /*
- * OAuth state مؤقت في الذاكرة.
- * كيربط عملية TikTok بالمستخدم اللي بدا الربط.
+ * TikTok OAuth STATE
+ *
+ * ما نعتمدوش على Map أو Deno KV باش state يبقى صالح
+ * بين instances مختلفة في Deno Deploy.
+ *
+ * state = base64url(payload) + "." + HMAC-SHA256 signature
  */
-const oauthStates = new Map();
 
-async function saveOAuthState(state, data) {
-    if (
-        typeof Deno !== "undefined" &&
-        typeof Deno.openKv === "function"
-    ) {
-        if (!globalThis.__ultraaiTikTokKV) {
-            globalThis.__ultraaiTikTokKV = await Deno.openKv();
-        }
+function getStateSecret() {
+    const secret =
+        process.env.TIKTOK_CLIENT_SECRET ||
+        process.env.JWT_SECRET;
 
-        await globalThis.__ultraaiTikTokKV.set(
-            ["ultraai", "tiktok", "oauth-state", state],
-            data,
-            { expireIn: 10 * 60 * 1000 }
-        );
-
-        return;
+    if (!secret) {
+        throw new Error("TikTok state secret is missing");
     }
 
-    oauthStates.set(state, data);
+    return String(secret);
 }
 
-async function getOAuthState(state) {
-    if (
-        typeof Deno !== "undefined" &&
-        typeof Deno.openKv === "function"
-    ) {
-        if (!globalThis.__ultraaiTikTokKV) {
-            globalThis.__ultraaiTikTokKV = await Deno.openKv();
-        }
+function base64urlEncode(value) {
+    return Buffer
+        .from(value)
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+}
 
-        const result =
-            await globalThis.__ultraaiTikTokKV.get(
-                ["ultraai", "tiktok", "oauth-state", state]
+function base64urlDecode(value) {
+    let s = String(value)
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+    while (s.length % 4) s += "=";
+
+    return Buffer
+        .from(s, "base64")
+        .toString("utf8");
+}
+
+function createOAuthState(userId) {
+
+    const payload = {
+        userId: String(userId),
+        createdAt: Date.now(),
+        nonce: crypto.randomBytes(24).toString("hex")
+    };
+
+    const encoded =
+        base64urlEncode(
+            JSON.stringify(payload)
+        );
+
+    const signature =
+        crypto
+            .createHmac(
+                "sha256",
+                getStateSecret()
+            )
+            .update(encoded)
+            .digest("base64")
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/g, "");
+
+    return encoded + "." + signature;
+}
+
+function verifyOAuthState(state) {
+
+    if (!state || typeof state !== "string") {
+        return null;
+    }
+
+    const parts = state.split(".");
+
+    if (parts.length !== 2) {
+        return null;
+    }
+
+    const [encoded, receivedSignature] = parts;
+
+    if (!encoded || !receivedSignature) {
+        return null;
+    }
+
+    const expectedSignature =
+        crypto
+            .createHmac(
+                "sha256",
+                getStateSecret()
+            )
+            .update(encoded)
+            .digest("base64")
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_")
+            .replace(/=+$/g, "");
+
+    try {
+
+        const a =
+            Buffer.from(
+                receivedSignature
             );
 
-        return result.value || null;
-    }
+        const b =
+            Buffer.from(
+                expectedSignature
+            );
 
-    return oauthStates.get(state) || null;
-}
-
-async function deleteOAuthState(state) {
-    if (
-        typeof Deno !== "undefined" &&
-        typeof Deno.openKv === "function"
-    ) {
-        if (!globalThis.__ultraaiTikTokKV) {
-            globalThis.__ultraaiTikTokKV = await Deno.openKv();
+        if (
+            a.length !== b.length ||
+            !crypto.timingSafeEqual(a, b)
+        ) {
+            return null;
         }
 
-        await globalThis.__ultraaiTikTokKV.delete(
-            ["ultraai", "tiktok", "oauth-state", state]
+        const payload =
+            JSON.parse(
+                base64urlDecode(encoded)
+            );
+
+        if (!payload.userId) {
+            return null;
+        }
+
+        /*
+         * STATE صالح فقط 10 دقائق
+         */
+        if (
+            !payload.createdAt ||
+            Date.now() - Number(payload.createdAt) >
+                10 * 60 * 1000
+        ) {
+            return null;
+        }
+
+        return payload;
+
+    } catch (error) {
+        console.error(
+            "TikTok state verification error:",
+            error
         );
 
-        return true;
+        return null;
     }
-
-    oauthStates.delete(state);
-    return true;
 }
 
 router.get("/test", (req, res) => {
@@ -123,12 +207,20 @@ router.get("/login", async (req, res) => {
             });
         }
 
-        const state = crypto.randomBytes(32).toString("hex");
+        const userId =
+            user.id ||
+            user.userId ||
+            user._id;
 
-        await saveOAuthState(state, {
-            userId: user.id || user.userId || user._id,
-            createdAt: Date.now()
-        });
+        if (!userId) {
+            return res.status(401).json({
+                success: false,
+                message: "تعذر تحديد المستخدم."
+            });
+        }
+
+        const state =
+            createOAuthState(userId);
 
         const params = new URLSearchParams({
             client_key: clientKey,
@@ -172,25 +264,11 @@ router.get("/callback", async (req, res) => {
             );
         }
 
-        const stateData = await getOAuthState(state);
+        const stateData = verifyOAuthState(state);
 
         if (!stateData) {
             return res.status(400).send(
                 "TikTok OAuth: invalid or expired state"
-            );
-        }
-
-        await deleteOAuthState(state);
-
-        /*
-         * صلاحية state: 10 دقائق
-         */
-        if (
-            Date.now() - stateData.createdAt >
-            10 * 60 * 1000
-        ) {
-            return res.status(400).send(
-                "TikTok OAuth: state expired"
             );
         }
 
