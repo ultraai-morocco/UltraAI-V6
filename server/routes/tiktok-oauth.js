@@ -220,15 +220,25 @@ router.get("/callback", async (req, res) => {
    TIKTOK STATUS
 ========================================= */
 
-router.get("/status", async (req, res) => {
+router.get("/status", authMiddleware, async (req, res) => {
     try {
-        const user = await getUserFromRequest(req);
+        const userId = req.user?.id;
 
-        if (!user) {
+        if (!userId) {
             return res.status(401).json({
                 success: false,
                 connected: false,
                 message: "يجب تسجيل الدخول إلى UltraAI أولاً."
+            });
+        }
+
+        const user = await kvUsers.findUserById(String(userId));
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                connected: false,
+                message: "UltraAI account not found."
             });
         }
 

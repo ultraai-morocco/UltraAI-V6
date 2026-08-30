@@ -832,3 +832,63 @@ async function connectTikTok() {
 
 window.connectTikTok = connectTikTok;
 
+
+/* =========================================
+   TIKTOK CONNECTION STATUS
+========================================= */
+
+async function loadTikTokStatus() {
+    const token = localStorage.getItem("token");
+
+    const text = document.getElementById("tiktokConnectionText");
+    const button = document.getElementById("tiktokConnectBtn");
+
+    if (!text || !button) return;
+
+    if (!token) {
+        text.textContent = "خاصك تسجل الدخول أولاً.";
+        button.disabled = false;
+        button.textContent = "🎵 ربط TikTok";
+        return;
+    }
+
+    try {
+        const response = await fetch("/tiktok/status", {
+            method: "GET",
+            headers: {
+                "Authorization": "Bearer " + token
+            }
+        });
+
+        const data = await response.json();
+
+        console.log("🎵 TikTok status:", data);
+
+        if (data.success && data.connected === true) {
+            text.textContent = "حساب TikTok مربوط بنجاح ✅";
+            button.textContent = "✅ TikTok مربوط";
+            button.disabled = true;
+        } else {
+            text.textContent =
+                "ربط حساب TikTok باش تقدر تنشر المحتوى مباشرة.";
+            button.textContent = "🎵 ربط TikTok";
+            button.disabled = false;
+        }
+
+    } catch (error) {
+        console.error("TikTok status error:", error);
+
+        text.textContent =
+            "تعذر التحقق من حالة TikTok.";
+
+        button.textContent = "🎵 ربط TikTok";
+        button.disabled = false;
+    }
+}
+
+window.loadTikTokStatus = loadTikTokStatus;
+
+/* فحص حالة TikTok مباشرة منين تتحمل الصفحة */
+setTimeout(() => {
+    loadTikTokStatus();
+}, 100);
