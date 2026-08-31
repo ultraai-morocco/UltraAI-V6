@@ -64,100 +64,115 @@ function base64urlDecode(value) {
         .toString("utf8");
 }
 
-function createOAuthState(userId) {
+function getStateSecret() {
+    const secret =
+        process.env.TIKTOK_CLIENT_SECRET ||
+        process.env.JWT_SECRET;
 
+    if (!secret) {
+        throw new Error("TikTok state secret is missing");
+    }
+
+    return String(secret);
+}
+
+function base64urlEncode(value) {
+    return Buffer.from(String(value), "utf8")
+        .toString("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+}
+
+function base64urlDecode(value) {
+    let s = String(value)
+        .replace(/-/g, "+")
+        .replace(/_/g, "/");
+
+    while (s.length % 4) s += "=";
+
+    return Buffer.from(s, "base64").toString("utf8");
+}
+
+function signState(encoded) {
+    return crypto
+        .createHmac("sha256", getStateSecret())
+        .update(encoded)
+        .digest("base64")
+        .replace(/\+/g, "-")
+        .replace(/\//g, "_")
+        .replace(/=+$/g, "");
+}
+
+function createOAuthState(userId) {
     const payload = {
         userId: String(userId),
         createdAt: Date.now(),
         nonce: crypto.randomBytes(24).toString("hex")
     };
 
-    const encoded =
-        base64urlEncode(
-            JSON.stringify(payload)
-        );
+    const encoded = base64urlEncode(
+        JSON.stringify(payload)
+    );
 
-    const signature =
-        crypto
-            .createHmac(
-                "sha256",
-                getStateSecret()
-            )
-            .update(encoded)
-            .digest("base64")
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=+$/g, "");
-
-    return encoded + "." + signature;
+    return encoded + "." + signState(encoded);
 }
 
 function verifyOAuthState(state) {
-
-    if (!state || typeof state !== "string") {
-        return null;
-    }
-
-    const parts = state.split(".");
-
-    if (parts.length !== 2) {
-        return null;
-    }
-
-    const [encoded, receivedSignature] = parts;
-
-    if (!encoded || !receivedSignature) {
-        return null;
-    }
-
-    const expectedSignature =
-        crypto
-            .createHmac(
-                "sha256",
-                getStateSecret()
-            )
-            .update(encoded)
-            .digest("base64")
-            .replace(/\+/g, "-")
-            .replace(/\//g, "_")
-            .replace(/=+$/g, "");
-
     try {
+        if (!state || typeof state !== "string") {
+            console.error("TikTok STATE: missing");
+            return null;
+        }
 
-        const a =
-            Buffer.from(
-                receivedSignature
-            );
+        const parts = state.split(".");
 
-        const b =
-            Buffer.from(
-                expectedSignature
+        if (parts.length !== 2) {
+            console.error(
+                "TikTok STATE: invalid format"
             );
+            return null;
+        }
+
+        const encoded = parts[0];
+        const received = parts[1];
+        const expected = signState(encoded);
+
+        const a = Buffer.from(received, "utf8");
+        const b = Buffer.from(expected, "utf8");
 
         if (
             a.length !== b.length ||
             !crypto.timingSafeEqual(a, b)
         ) {
+            console.error(
+                "TikTok STATE: signature mismatch"
+            );
             return null;
         }
 
-        const payload =
-            JSON.parse(
-                base64urlDecode(encoded)
-            );
+        const payload = JSON.parse(
+            base64urlDecode(encoded)
+        );
 
         if (!payload.userId) {
+            console.error(
+                "TikTok STATE: userId missing"
+            );
             return null;
         }
 
-        /*
-         * STATE صالح فقط 10 دقائق
-         */
+        const age = Date.now() - Number(payload.createdAt);
+
         if (
-            !payload.createdAt ||
-            Date.now() - Number(payload.createdAt) >
-                10 * 60 * 1000
+            !Number.isFinite(age) ||
+            age < 0 ||
+            age > 10 * 60 * 1000
         ) {
+            console.error(
+                "TikTok STATE: expired",
+                { age }
+            );
             return null;
         }
 
@@ -165,10 +180,9 @@ function verifyOAuthState(state) {
 
     } catch (error) {
         console.error(
-            "TikTok state verification error:",
+            "TikTok STATE VERIFY ERROR:",
             error
         );
-
         return null;
     }
 }
@@ -264,7 +278,18 @@ router.get("/callback", async (req, res) => {
             );
         }
 
+        console.log("🎵 TikTok CALLBACK:", {
+            hasCode: !!code,
+            hasState: !!state,
+            stateLength: state ? String(state).length : 0
+        });
+
         const stateData = verifyOAuthState(state);
+
+        console.log("🎵 TikTok STATE RESULT:", {
+            valid: !!stateData,
+            userId: stateData?.userId || null
+        });
 
         if (!stateData) {
             return res.status(400).send(
@@ -277,6 +302,12 @@ router.get("/callback", async (req, res) => {
             clientSecret,
             redirectUri
         } = getConfig();
+
+        console.log("🎵 TikTok TOKEN EXCHANGE START", {
+            redirectUri,
+            clientKeyPresent: !!clientKey,
+            clientSecretPresent: !!clientSecret
+        });
 
         const tokenResponse = await fetch(
             "https://open.tiktokapis.com/v2/oauth/token/",
@@ -298,6 +329,17 @@ router.get("/callback", async (req, res) => {
 
         const tokenData =
             await tokenResponse.json();
+
+        console.log("🎵 TikTok TOKEN RESULT:", {
+            httpStatus: tokenResponse.status,
+            ok: tokenResponse.ok,
+            hasAccessToken: !!tokenData.access_token,
+            hasRefreshToken: !!tokenData.refresh_token,
+            openId: tokenData.open_id || null,
+            error: tokenData.error || null,
+            errorDescription:
+                tokenData.error_description || null
+        });
 
         console.log(
             "TikTok token response:",
@@ -354,7 +396,16 @@ router.get("/callback", async (req, res) => {
                 new Date().toISOString()
         };
 
+        console.log("🎵 TikTok SAVING USER:", {
+            userId: String(user.id),
+            openId: user.tiktok.openId
+        });
+
         await kvUsers.updateUser(user);
+
+        console.log("✅ TikTok USER SAVED:", {
+            userId: String(user.id)
+        });
 
         /*
          * الرجوع مباشرة إلى Auto Content
