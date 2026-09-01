@@ -33,8 +33,8 @@ function getConfig() {
 
 function getStateSecret() {
     const secret =
-        process.env.TIKTOK_CLIENT_SECRET ||
-        process.env.JWT_SECRET;
+        process.env.JWT_SECRET ||
+        process.env.TIKTOK_CLIENT_SECRET;
 
     if (!secret) {
         throw new Error("TikTok state secret is missing");
@@ -62,36 +62,6 @@ function base64urlDecode(value) {
     return Buffer
         .from(s, "base64")
         .toString("utf8");
-}
-
-function getStateSecret() {
-    const secret =
-        process.env.TIKTOK_CLIENT_SECRET ||
-        process.env.JWT_SECRET;
-
-    if (!secret) {
-        throw new Error("TikTok state secret is missing");
-    }
-
-    return String(secret);
-}
-
-function base64urlEncode(value) {
-    return Buffer.from(String(value), "utf8")
-        .toString("base64")
-        .replace(/\+/g, "-")
-        .replace(/\//g, "_")
-        .replace(/=+$/g, "");
-}
-
-function base64urlDecode(value) {
-    let s = String(value)
-        .replace(/-/g, "+")
-        .replace(/_/g, "/");
-
-    while (s.length % 4) s += "=";
-
-    return Buffer.from(s, "base64").toString("utf8");
 }
 
 function signState(encoded) {
