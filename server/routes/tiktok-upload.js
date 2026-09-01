@@ -29,14 +29,49 @@ router.post("/upload", authMiddleware, async (req, res) => {
             });
         }
 
+        const requestedVideo = String(
+            req.body?.videoPath || ""
+        ).trim();
+
+        if (!requestedVideo) {
+            return res.status(400).json({
+                success: false,
+                message: "مسار الفيديو مطلوب."
+            });
+        }
+
+        const cleanVideoPath =
+            requestedVideo
+                .replace(/^https?:\/\/[^/]+/, "")
+                .replace(/^\/+/, "");
+
         const videoPath = path.join(
             __dirname,
             "..",
             "..",
             "public",
-            "generated-videos",
-            "video-cff7693f-d903-48a3-bd41-72d8abc1861c.mp4"
+            cleanVideoPath
         );
+
+        const publicRoot = path.resolve(
+            __dirname,
+            "..",
+            "..",
+            "public"
+        );
+
+        const resolvedVideoPath =
+            path.resolve(videoPath);
+
+        if (
+            resolvedVideoPath !== publicRoot &&
+            !resolvedVideoPath.startsWith(publicRoot + path.sep)
+        ) {
+            return res.status(400).json({
+                success: false,
+                message: "مسار الفيديو غير مسموح."
+            });
+        }
 
         if (!fs.existsSync(videoPath)) {
             return res.status(404).json({

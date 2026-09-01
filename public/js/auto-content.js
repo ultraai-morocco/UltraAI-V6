@@ -326,6 +326,23 @@ function renderAutoPost(post, slot) {
                 `
         }
 
+        ${
+            video
+                ? `
+                    <button
+                        type="button"
+                        class="auto-copy-btn"
+                        data-auto-tiktok-slot="${slot}"
+                        onclick="testTikTokDraftUpload(
+                            '${escapeAutoContent(video)}'
+                        )"
+                    >
+                        🎵 رفع إلى TikTok كـ Draft
+                    </button>
+                `
+                : ""
+        }
+
         <button
             type="button"
             class="auto-copy-btn"
@@ -926,11 +943,17 @@ setTimeout(() => {
     loadTikTokStatus();
 }, 100);
 
-async function testTikTokDraftUpload() {
+async function testTikTokDraftUpload(videoPath) {
+
     const token = localStorage.getItem("token");
 
     if (!token) {
-        alert("خاصك تسجل الدخول إلى UltraAI أولاً.");
+        alert("خاصك تسجل الدخول أولاً.");
+        return;
+    }
+
+    if (!videoPath) {
+        alert("خاصك تنشئ الفيديو أولاً.");
         return;
     }
 
@@ -940,23 +963,33 @@ async function testTikTokDraftUpload() {
             headers: {
                 "Authorization": "Bearer " + token,
                 "Content-Type": "application/json"
-            }
+            },
+            body: JSON.stringify({
+                videoPath
+            })
         });
 
         const data = await response.json();
 
-        console.log("🎵 TikTok Draft Test:", data);
+        console.log("🎵 TikTok Draft Upload:", data);
 
-        if (data.success) {
-            alert("✅ تم رفع الفيديو إلى TikTok كـ Draft!");
-        } else {
-            alert("❌ فشل رفع الفيديو:\n" + (data.message || "خطأ غير معروف"));
+        if (!response.ok || !data.success) {
+            throw new Error(
+                data.message || "فشل رفع الفيديو إلى TikTok."
+            );
         }
 
+        alert("✅ تم رفع الفيديو إلى TikTok كـ Draft!");
+
     } catch (error) {
-        console.error("TikTok Draft Test Error:", error);
-        alert("❌ خطأ في الاتصال بالسيرفر.");
+        console.error("TikTok Draft Upload Error:", error);
+
+        alert(
+            "❌ فشل رفع الفيديو:\n" +
+            (error.message || "خطأ غير معروف.")
+        );
     }
 }
 
 window.testTikTokDraftUpload = testTikTokDraftUpload;
+
