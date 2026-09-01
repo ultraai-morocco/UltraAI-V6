@@ -241,7 +241,8 @@ router.get("/login", async (req, res) => {
             response_type: "code",
             scope: "user.info.basic,video.upload",
             redirect_uri: redirectUri,
-            state
+            state,
+            disable_auto_auth: "1"
         });
 
         res.redirect(
