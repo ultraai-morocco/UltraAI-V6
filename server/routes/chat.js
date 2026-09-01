@@ -820,7 +820,7 @@ VISION OUTPUT RULES:
             await groq.chat.completions.create({
 
                 model:
-                    "qwen/qwen3.6-27b",
+                    "qwen/qwen3.8-27b",
 
                 reasoning_effort:
                     "none",

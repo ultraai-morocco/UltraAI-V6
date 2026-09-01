@@ -18,7 +18,7 @@ const base64 = fs.readFileSync(file).toString("base64");
 (async () => {
   try {
     const r = await groq.chat.completions.create({
-      model: "qwen/qwen3.6-27b",
+      model: "qwen/qwen3.8-27b",
       messages: [{
         role: "user",
         content: [
