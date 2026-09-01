@@ -804,30 +804,20 @@ async function connectTikTok() {
         button.textContent = "⏳ جاري فتح TikTok...";
     }
 
-    try {
+    /*
+     * مهم:
+     * لا نعتمد على حالة connected القديمة.
+     * كل ضغطة على الزر تبدأ OAuth جديد.
+     */
+    const url =
+        "/tiktok/login?token=" +
+        encodeURIComponent(token) +
+        "&t=" +
+        Date.now();
 
-        const url =
-            "/tiktok/login?token=" +
-            encodeURIComponent(token);
+    console.log("🎵 Starting TikTok OAuth");
 
-        window.location.href = url;
-
-    } catch (error) {
-
-        console.error(
-            "TikTok connect error:",
-            error
-        );
-
-        alert(
-            "تعذر بدء ربط TikTok."
-        );
-
-        if (button) {
-            button.disabled = false;
-            button.textContent = "🎵 ربط TikTok";
-        }
-    }
+    window.location.assign(url);
 }
 
 window.connectTikTok = connectTikTok;
@@ -838,50 +828,93 @@ window.connectTikTok = connectTikTok;
 ========================================= */
 
 async function loadTikTokStatus() {
+
     const token = localStorage.getItem("token");
 
-    const text = document.getElementById("tiktokConnectionText");
-    const button = document.getElementById("tiktokConnectBtn");
+    const text =
+        document.getElementById("tiktokConnectionText");
+
+    const button =
+        document.getElementById("tiktokConnectBtn");
 
     if (!text || !button) return;
 
     if (!token) {
-        text.textContent = "خاصك تسجل الدخول أولاً.";
+        text.textContent =
+            "خاصك تسجل الدخول أولاً.";
+
+        button.textContent =
+            "🎵 ربط TikTok";
+
         button.disabled = false;
-        button.textContent = "🎵 ربط TikTok";
+
         return;
     }
 
     try {
-        const response = await fetch("/tiktok/status", {
-            method: "GET",
-            headers: {
-                "Authorization": "Bearer " + token
-            }
-        });
 
-        const data = await response.json();
+        const response =
+            await fetch(
+                "/tiktok/status?t=" + Date.now(),
+                {
+                    method: "GET",
+                    cache: "no-store",
+                    headers: {
+                        "Authorization":
+                            "Bearer " + token
+                    }
+                }
+            );
 
-        console.log("🎵 TikTok status:", data);
+        const data =
+            await response.json();
 
-        if (data.success && data.connected === true) {
-            text.textContent = "حساب TikTok مربوط بنجاح ✅";
-            button.textContent = "✅ TikTok مربوط";
-            button.disabled = true;
+        console.log(
+            "🎵 TikTok status:",
+            data
+        );
+
+        if (
+            data.success &&
+            data.connected === true
+        ) {
+
+            text.textContent =
+                "حساب TikTok مربوط بنجاح ✅";
+
+            /*
+             * نخلي الزر قابل للضغط
+             * لإعادة Authorization.
+             */
+            button.textContent =
+                "🔄 إعادة ربط TikTok";
+
+            button.disabled = false;
+
         } else {
+
             text.textContent =
                 "ربط حساب TikTok باش تقدر تنشر المحتوى مباشرة.";
-            button.textContent = "🎵 ربط TikTok";
+
+            button.textContent =
+                "🎵 ربط TikTok";
+
             button.disabled = false;
         }
 
     } catch (error) {
-        console.error("TikTok status error:", error);
+
+        console.error(
+            "TikTok status error:",
+            error
+        );
 
         text.textContent =
             "تعذر التحقق من حالة TikTok.";
 
-        button.textContent = "🎵 ربط TikTok";
+        button.textContent =
+            "🎵 ربط TikTok";
+
         button.disabled = false;
     }
 }

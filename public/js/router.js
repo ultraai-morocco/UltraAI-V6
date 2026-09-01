@@ -157,7 +157,7 @@ async function loadPage(page) {
                     "autoContentScript";
 
                 script.src =
-                    "/js/auto-content.js?v=20260901-tiktok-final";
+                    "/js/auto-content.js?v=20260901-tiktok-reconnect";
 
                 script.onload = () => {
                     console.log(
