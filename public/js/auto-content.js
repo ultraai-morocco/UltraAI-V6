@@ -925,3 +925,38 @@ window.loadTikTokStatus = loadTikTokStatus;
 setTimeout(() => {
     loadTikTokStatus();
 }, 100);
+
+async function testTikTokDraftUpload() {
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+        alert("خاصك تسجل الدخول إلى UltraAI أولاً.");
+        return;
+    }
+
+    try {
+        const response = await fetch("/tiktok-upload/upload", {
+            method: "POST",
+            headers: {
+                "Authorization": "Bearer " + token,
+                "Content-Type": "application/json"
+            }
+        });
+
+        const data = await response.json();
+
+        console.log("🎵 TikTok Draft Test:", data);
+
+        if (data.success) {
+            alert("✅ تم رفع الفيديو إلى TikTok كـ Draft!");
+        } else {
+            alert("❌ فشل رفع الفيديو:\n" + (data.message || "خطأ غير معروف"));
+        }
+
+    } catch (error) {
+        console.error("TikTok Draft Test Error:", error);
+        alert("❌ خطأ في الاتصال بالسيرفر.");
+    }
+}
+
+window.testTikTokDraftUpload = testTikTokDraftUpload;
