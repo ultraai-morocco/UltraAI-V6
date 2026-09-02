@@ -133,6 +133,8 @@ async function generateImage(prompt) {
         `${IMAGE_HF_SPACE}/gradio_api/call/generate_image`,
         "-H",
         "Content-Type: application/json",
+        "-H",
+        `Authorization: Bearer ${process.env.HF_TOKEN}`,
         "-d",
         JSON.stringify(payload)
     ]);
@@ -158,6 +160,8 @@ async function generateImage(prompt) {
         "-N",
         "-s",
         "--fail",
+        "-H",
+        `Authorization: Bearer ${process.env.HF_TOKEN}`,
         `${IMAGE_HF_SPACE}/gradio_api/call/generate_image/${event.event_id}`
     ]);
 
