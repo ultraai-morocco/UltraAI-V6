@@ -333,11 +333,23 @@ function renderAutoPost(post, slot) {
                         type="button"
                         class="auto-copy-btn"
                         data-auto-tiktok-slot="${slot}"
+                        onclick="publishAutoVideoToTikTok(
+                            '${escapeAutoContent(video)}',
+                            '${escapeAutoContent(post.title || "")}'
+                        )"
+                    >
+                        📤 نشر مباشرة على TikTok
+                    </button>
+
+                    <button
+                        type="button"
+                        class="auto-copy-btn"
+                        data-auto-tiktok-draft-slot="${slot}"
                         onclick="testTikTokDraftUpload(
                             '${escapeAutoContent(video)}'
                         )"
                     >
-                        🎵 رفع إلى TikTok كـ Draft
+                        🎵 رفع كـ Draft
                     </button>
                 `
                 : ""
@@ -950,6 +962,61 @@ window.loadTikTokStatus = loadTikTokStatus;
 setTimeout(() => {
     loadTikTokStatus();
 }, 100);
+
+
+async function publishAutoVideoToTikTok(videoPath, title) {
+    try {
+        const token =
+            localStorage.getItem("token") ||
+            localStorage.getItem("authToken");
+
+        if (!token) {
+            alert("❌ خاصك تسجل الدخول أولاً.");
+            return;
+        }
+
+        const response = await fetch("/tiktok-upload/publish", {
+            method: "POST",
+            headers: {
+                "Authorization": `Bearer ${token}`,
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                videoPath,
+                title
+            })
+        });
+
+        const data = await response.json();
+
+        console.log("🎵 TikTok Direct Publish:", data);
+
+        if (!response.ok || !data.success) {
+            alert(
+                "❌ فشل النشر المباشر على TikTok:\n" +
+                (data.message || "خطأ غير معروف")
+            );
+            return;
+        }
+
+        alert(
+            "✅ تم إرسال الفيديو للنشر على TikTok.\n" +
+            "Publish ID: " +
+            (data.publish_id || "غير متوفر")
+        );
+
+    } catch (error) {
+        console.error(
+            "❌ TikTok Direct Publish error:",
+            error
+        );
+
+        alert(
+            "❌ وقع خطأ أثناء النشر على TikTok:\n" +
+            error.message
+        );
+    }
+}
 
 async function testTikTokDraftUpload(videoPath) {
 

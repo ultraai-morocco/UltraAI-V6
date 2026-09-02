@@ -209,7 +209,7 @@ router.get("/login", async (req, res) => {
         const params = new URLSearchParams({
             client_key: clientKey,
             response_type: "code",
-            scope: "user.info.basic,video.upload",
+            scope: "user.info.basic,video.upload,video.publish",
             redirect_uri: redirectUri,
             state,
             disable_auto_auth: "1"
