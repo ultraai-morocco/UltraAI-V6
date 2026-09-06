@@ -412,6 +412,7 @@ app.use("/admin-inbox", require("./routes/admin-inbox"));
 
 app.use("/conversations", require("./routes/conversations"));
 app.use("/memory-pro", require("./routes/memory-pro"));
+app.use("/brain", require("./routes/brain"));
 app.use("/conversations-list", require("./routes/conversations-list"));
 app.use("/delete-conversation", require("./routes/delete-conversation"));
 app.use("/privacy", require("./routes/privacy"));

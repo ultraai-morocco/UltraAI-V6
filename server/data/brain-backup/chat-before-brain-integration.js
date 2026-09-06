@@ -6,8 +6,6 @@ const path = require("path");
 
 const db = require("../database");
 const auth = require("../auth");
-const brainRetriever = require("../brain/brain-retriever");
-const brainExtractor = require("../brain/brain-extractor");
 const Groq = require("groq-sdk");
 
 const groq = new Groq({
@@ -439,89 +437,6 @@ router.post("/", async (req,res)=>{
 - أعط الجواب النهائي مباشرة.`
         }
     ];
-
-
-    /*
-     * ULTRAAI BRAIN
-     * الذاكرة المشتركة الخاصة بالمستخدم.
-     *
-     * نجيب فقط الذكريات المرتبطة بالسؤال الحالي،
-     * وماشي جميع ذكريات المستخدم في كل طلب.
-     */
-
-    try {
-
-        const brainItems =
-            brainRetriever.retrieve(
-                String(user.id),
-                question,
-                {
-                    limit: 12,
-                    maxChars: 6000
-                }
-            );
-
-        if (
-            Array.isArray(brainItems) &&
-            brainItems.length > 0
-        ) {
-
-            const brainMemory =
-                brainRetriever.formatForPrompt(
-                    brainItems
-                );
-
-            if (brainMemory) {
-
-                messages[0].content += `
-
-ULTRAAI BRAIN — SHARED USER MEMORY:
-
-هذه ذاكرة شخصية مشتركة لهذا المستخدم عبر المحادثات والصفحات المختلفة.
-
-القواعد:
-- استعمل هذه المعلومات فقط عندما تكون مرتبطة فعلاً بالسؤال الحالي.
-- هذه المعلومات تخص هذا المستخدم فقط.
-- لا تعتبر الذاكرة صحيحة إذا تعارضت مع معلومة أحدث قالها المستخدم الآن.
-- إذا صحح المستخدم معلومة، أعط الأولوية للتصحيح الجديد.
-- لا تخبر المستخدم بأنك استعملت Brain أو الذاكرة الداخلية إلا إذا سأل عن ذلك.
-- لا تخترع معلومات غير موجودة في الذاكرة.
-- لا تستعمل ذكريات غير مرتبطة بالسؤال.
-
-الذكريات المرتبطة بالسؤال الحالي:
-
-${brainMemory}
-`;
-
-                console.log(
-                    "🧠 ULTRAAI BRAIN: loaded",
-                    brainItems.length,
-                    "relevant memories for user",
-                    user.id
-                );
-
-            }
-
-        } else {
-
-            console.log(
-                "🧠 ULTRAAI BRAIN: no relevant memories for user",
-                user.id
-            );
-
-        }
-
-    } catch (error) {
-
-        /*
-         * Brain لا يجب أن يمنع Chat من العمل.
-         */
-        console.error(
-            "🧠 ULTRAAI BRAIN ERROR:",
-            error.message
-        );
-
-    }
 
 
     /*
@@ -1119,55 +1034,6 @@ max_completion_tokens: image ? 150 : 500,
 
             message:
                 "حدث خطأ أثناء الاتصال بالذكاء الاصطناعي."
-
-        });
-
-    }
-
-
-    /*
-     * ULTRAAI BRAIN AUTO-LEARNING
-     *
-     * نتعلم من رسالة المستخدم بعد نجاح الإجابة.
-     * extraction تعمل في الخلفية حتى لا نزيدو وقت انتظار المستخدم.
-     *
-     * مهم:
-     * - فقط المحادثات الخاصة المصادق عليها.
-     * - لا نستعمل global-chat.
-     * - لا نعتمد على الجواب كحقيقة شخصية.
-     * - extractor نفسه يمنع حفظ الأسرار والمعلومات العابرة.
-     */
-
-    if (
-        question &&
-        String(question).trim().length >= 8
-    ) {
-
-        setImmediate(async () => {
-
-            try {
-
-                const result =
-                    await brainExtractor.extract(
-                        String(user.id),
-                        question,
-                        answer,
-                        conversationId
-                    );
-
-                console.log(
-                    "🧠 BRAIN AUTO-LEARNING:",
-                    result
-                );
-
-            } catch (error) {
-
-                console.error(
-                    "🧠 BRAIN AUTO-LEARNING ERROR:",
-                    error.message
-                );
-
-            }
 
         });
 
