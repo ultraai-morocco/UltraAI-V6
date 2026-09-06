@@ -1,79 +1,76 @@
 const store = require("./brain-store");
+const intelligence =
+    require("./brain-intelligence");
 
-function normalize(text) {
-    return String(text || "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[أإآ]/g, "ا")
-        .replace(/ة/g, "ه")
-        .replace(/ى/g, "ي")
-        .replace(/[^\p{L}\p{N}\s]/gu, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-}
+function scoreItem(
+    item,
+    question
+) {
+    const q =
+        intelligence.tokens(
+            question
+        );
 
-function tokenize(text) {
-    return normalize(text)
-        .split(/\s+/)
-        .filter(word => word.length >= 2);
-}
-
-function scoreItem(item, questionTokens, normalizedQuestion) {
-    const itemText = normalize(
-        `${item.key || ""} ${item.text || ""} ${item.category || ""}`
-    );
-
-    if (!itemText) {
-        return 0;
-    }
-
-    const itemTokens = new Set(
-        tokenize(itemText)
-    );
+    const text =
+        intelligence.normalize(
+            `${item.key || ""} ${item.text || ""} ${item.category || ""} ${(item.tags || []).join(" ")}`
+        );
 
     let score = 0;
 
-    for (const token of questionTokens) {
-        if (itemTokens.has(token)) {
-            score += 3;
-        } else if (
-            itemText.includes(token)
+    for (const token of q) {
+        if (
+            text.includes(token)
         ) {
-            score += 1;
+            score += 2;
         }
     }
 
-    if (
-        item.key &&
-        normalizedQuestion.includes(
-            normalize(item.key)
-        )
-    ) {
-        score += 5;
-    }
+    const similarity =
+        intelligence.similarity(
+            question,
+            text
+        );
+
+    score +=
+        similarity * 10;
 
     if (
-        item.category &&
-        normalizedQuestion.includes(
-            normalize(item.category)
-        )
+        item.confidence >= 0.9
     ) {
-        score += 1;
+        score += 2;
     }
 
-    if (item.confidence >= 0.9) {
-        score += 1;
+    score +=
+        Number(
+            item.importance || 0
+        ) * 3;
+
+    if (
+        item.usageCount > 0
+    ) {
+        score += Math.min(
+            item.usageCount * 0.05,
+            1
+        );
     }
 
-    if (item.lastUsedAt) {
-        const days =
-            (Date.now() -
-                new Date(item.lastUsedAt).getTime()) /
+    if (
+        item.lastUsedAt
+    ) {
+        const age =
+            (
+                Date.now() -
+                new Date(
+                    item.lastUsedAt
+                ).getTime()
+            ) /
             86400000;
 
-        if (days < 7) {
+        if (age < 3) {
             score += 1;
+        } else if (age < 14) {
+            score += 0.5;
         }
     }
 
@@ -85,68 +82,87 @@ function retrieve(
     question,
     options = {}
 ) {
-    if (!store.getEnabled(userId)) {
+    if (
+        !store.getEnabled(
+            userId
+        )
+    ) {
         return [];
     }
 
-    const limit = Math.max(
-        1,
-        Math.min(
-            Number(options.limit) || 8,
-            20
-        )
-    );
+    const limit =
+        Math.max(
+            1,
+            Math.min(
+                Number(
+                    options.limit
+                ) || 12,
+                25
+            )
+        );
 
     const maxChars =
-        Number(options.maxChars) || 5000;
+        Math.max(
+            1000,
+            Math.min(
+                Number(
+                    options.maxChars
+                ) || 7000,
+                12000
+            )
+        );
 
-    const normalizedQuestion =
-        normalize(question);
-
-    const questionTokens =
-        tokenize(question);
-
-    if (!questionTokens.length) {
+    if (
+        !String(
+            question || ""
+        ).trim()
+    ) {
         return [];
     }
 
-    const items = store.list(userId, {
-        activeOnly: true
-    });
-
-    const ranked = items
-        .map(item => ({
-            item,
-            score: scoreItem(
-                item,
-                questionTokens,
-                normalizedQuestion
-            )
-        }))
-        .filter(x => x.score > 0)
-        .sort((a, b) => {
-            if (b.score !== a.score) {
-                return b.score - a.score;
+    const items =
+        store.list(
+            userId,
+            {
+                activeOnly: true
             }
+        );
 
-            return (
-                new Date(
-                    b.item.updatedAt || 0
-                ).getTime() -
-                new Date(
-                    a.item.updatedAt || 0
-                ).getTime()
+    const ranked =
+        items
+            .map(item => ({
+                item,
+                score:
+                    scoreItem(
+                        item,
+                        question
+                    )
+            }))
+            .filter(
+                x =>
+                    x.score >=
+                    1.5
+            )
+            .sort(
+                (a, b) =>
+                    b.score -
+                    a.score
             );
-        });
 
     const selected = [];
+
     let chars = 0;
 
-    for (const result of ranked) {
-        const text = result.item.text || "";
+    for (
+        const result of ranked
+    ) {
+        const text =
+            result.item.text ||
+            "";
 
         if (
-            chars + text.length >
+            chars +
+                text.length >
             maxChars
         ) {
             continue;
@@ -154,21 +170,35 @@ function retrieve(
 
         selected.push({
             ...result.item,
-            relevance: result.score
+            relevance:
+                Number(
+                    result.score.toFixed(
+                        3
+                    )
+                )
         });
 
-        chars += text.length;
+        chars +=
+            text.length;
 
-        if (selected.length >= limit) {
+        if (
+            selected.length >=
+            limit
+        ) {
             break;
         }
     }
 
-    if (selected.length) {
+    if (
+        selected.length
+    ) {
         store.markUsed(
             userId,
             selected.map(
-                x => String(x.id)
+                x =>
+                    String(
+                        x.id
+                    )
             )
         );
     }
@@ -176,22 +206,62 @@ function retrieve(
     return selected;
 }
 
-function formatForPrompt(items) {
-    if (!Array.isArray(items) || !items.length) {
+function formatForPrompt(
+    items
+) {
+    if (
+        !Array.isArray(
+            items
+        ) ||
+        !items.length
+    ) {
         return "";
     }
 
     return items
         .map(
-            (item, index) =>
+            (
+                item,
+                index
+            ) =>
                 `${index + 1}. [${item.category || "general"}] ${item.text}`
         )
         .join("\n");
 }
 
+function getBrainContext(
+    userId,
+    question
+) {
+    const items =
+        retrieve(
+            userId,
+            question,
+            {
+                limit: 15,
+                maxChars: 7000
+            }
+        );
+
+    return {
+        items,
+        text:
+            formatForPrompt(
+                items
+            )
+    };
+}
+
 module.exports = {
-    normalize,
-    tokenize,
+    normalize:
+        intelligence.normalize,
+
+    tokenize:
+        intelligence.tokens,
+
     retrieve,
-    formatForPrompt
+
+    formatForPrompt,
+
+    getBrainContext
 };

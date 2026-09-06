@@ -391,66 +391,6 @@ async function loadPage(page) {
 
         /* MEMORY */
 
-        /* BRAIN JS */
-        if (page === "brain") {
-
-            const oldBrainScript =
-                document.getElementById("brainScript");
-
-            if (oldBrainScript) {
-                oldBrainScript.remove();
-            }
-
-            await new Promise((resolve, reject) => {
-
-                const script =
-                    document.createElement("script");
-
-                script.id =
-                    "brainScript";
-
-                script.src =
-                    "/js/brain.js?v=20260906-v2";
-
-                script.onload = () => {
-                    console.log(
-                        "✅ Brain JS loaded"
-                    );
-                    resolve();
-                };
-
-                script.onerror = () => {
-                    console.error(
-                        "❌ Brain JS failed"
-                    );
-                    reject(
-                        new Error(
-                            "Failed to load brain.js"
-                        )
-                    );
-                };
-
-                document.body.appendChild(
-                    script
-                );
-            });
-        }
-
-        if (page === "brain") {
-            makeHeader(
-                "brainHeader",
-                "🧠 UltraAI Brain",
-                "ذاكرتك الشخصية المشتركة"
-            );
-
-            if (
-                typeof window.UltraAIBrain !== "undefined" &&
-                typeof window.UltraAIBrain.load === "function"
-            ) {
-                window.UltraAIBrain.load();
-            }
-        }
-
         if (page === "memory") {
 
             makeHeader(

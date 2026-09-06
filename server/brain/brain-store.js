@@ -4,6 +4,8 @@ const path = require("path");
 const DATA_DIR = path.join(__dirname, "..", "data");
 const BRAIN_FILE = path.join(DATA_DIR, "brain.json");
 
+const MAX_ITEMS = 1000;
+
 function ensureDataDir() {
     if (!fs.existsSync(DATA_DIR)) {
         fs.mkdirSync(DATA_DIR, { recursive: true });
@@ -19,18 +21,14 @@ function load() {
         }
 
         const data = JSON.parse(
-            fs.readFileSync(BRAIN_FILE, "utf8")
+            fs.readFileSync(BRAIN_FILE, "utf8") || "{}"
         );
 
         return data && typeof data === "object"
             ? data
             : {};
     } catch (error) {
-        console.error(
-            "BRAIN LOAD ERROR:",
-            error.message
-        );
-
+        console.error("🧠 BRAIN LOAD ERROR:", error.message);
         return {};
     }
 }
@@ -38,7 +36,8 @@ function load() {
 function save(data) {
     ensureDataDir();
 
-    const tempFile = BRAIN_FILE + ".tmp";
+    const tempFile =
+        BRAIN_FILE + "." + process.pid + ".tmp";
 
     fs.writeFileSync(
         tempFile,
@@ -59,32 +58,67 @@ function getUserBrain(data, userId) {
     if (!data[id]) {
         data[id] = {
             enabled: true,
-            version: 1,
-            items: []
+            version: 2,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+            items: [],
+            events: [],
+            projects: [],
+            goals: []
         };
     }
 
-    if (!Array.isArray(data[id].items)) {
-        data[id].items = [];
+    const brain = data[id];
+
+    if (!Array.isArray(brain.items)) {
+        brain.items = [];
     }
 
-    return data[id];
+    if (!Array.isArray(brain.events)) {
+        brain.events = [];
+    }
+
+    if (!Array.isArray(brain.projects)) {
+        brain.projects = [];
+    }
+
+    if (!Array.isArray(brain.goals)) {
+        brain.goals = [];
+    }
+
+    if (typeof brain.enabled !== "boolean") {
+        brain.enabled = true;
+    }
+
+    brain.version = 2;
+
+    return brain;
 }
 
-function createId() {
+function createId(prefix = "mem") {
     return (
+        prefix +
+        "_" +
         Date.now().toString(36) +
-        "-" +
+        "_" +
         Math.random()
             .toString(36)
             .slice(2, 10)
     );
 }
 
-function cleanText(text, max = 1000) {
+function cleanText(text, max = 1500) {
     return String(text || "")
         .trim()
         .slice(0, max);
+}
+
+function cleanKey(key) {
+    return cleanText(key, 120)
+        .toLowerCase()
+        .replace(/\s+/g, "_")
+        .replace(/[^\p{L}\p{N}_-]/gu, "")
+        .slice(0, 120) || "general";
 }
 
 function add(userId, item = {}) {
@@ -94,11 +128,11 @@ function add(userId, item = {}) {
     const now = new Date().toISOString();
 
     const newItem = {
-        id: createId(),
+        id: createId("mem"),
 
-        key: cleanText(item.key, 120),
+        key: cleanKey(item.key),
 
-        text: cleanText(item.text, 1000),
+        text: cleanText(item.text),
 
         category: cleanText(
             item.category || "general",
@@ -107,17 +141,17 @@ function add(userId, item = {}) {
 
         source: cleanText(
             item.source || "manual",
-            40
+            60
         ),
 
         sourceId: cleanText(
             item.sourceId || "",
-            120
+            160
         ),
 
         conversationId: cleanText(
             item.conversationId || "",
-            120
+            160
         ),
 
         confidence:
@@ -128,6 +162,14 @@ function add(userId, item = {}) {
                 )
                 : 0.8,
 
+        importance:
+            typeof item.importance === "number"
+                ? Math.max(
+                    0,
+                    Math.min(1, item.importance)
+                )
+                : 0.5,
+
         status:
             item.status === "superseded"
                 ? "superseded"
@@ -137,14 +179,47 @@ function add(userId, item = {}) {
         updatedAt: now,
         lastUsedAt: null,
 
-        history: []
+        usageCount: 0,
+
+        tags: Array.isArray(item.tags)
+            ? item.tags
+                .map(x => cleanText(x, 40))
+                .filter(Boolean)
+                .slice(0, 20)
+            : [],
+
+        projectId: cleanText(
+            item.projectId || "",
+            120
+        ),
+
+        relatedMemoryIds:
+            Array.isArray(item.relatedMemoryIds)
+                ? item.relatedMemoryIds
+                    .map(String)
+                    .slice(0, 30)
+                : [],
+
+        history:
+            Array.isArray(item.history)
+                ? item.history.slice(-20)
+                : []
     };
+
+    if (!newItem.text) {
+        return null;
+    }
 
     brain.items.unshift(newItem);
 
-    if (brain.items.length > 500) {
-        brain.items = brain.items.slice(0, 500);
+    if (brain.items.length > MAX_ITEMS) {
+        brain.items = brain.items.slice(
+            0,
+            MAX_ITEMS
+        );
     }
+
+    brain.updatedAt = now;
 
     save(data);
 
@@ -164,17 +239,27 @@ function update(userId, itemId, changes = {}) {
     }
 
     if (changes.text !== undefined) {
-        item.text = cleanText(changes.text, 1000);
+        item.text = cleanText(
+            changes.text,
+            1500
+        );
     }
 
     if (changes.key !== undefined) {
-        item.key = cleanText(changes.key, 120);
+        item.key = cleanKey(changes.key);
     }
 
     if (changes.category !== undefined) {
         item.category = cleanText(
             changes.category,
             40
+        );
+    }
+
+    if (changes.source !== undefined) {
+        item.source = cleanText(
+            changes.source,
+            60
         );
     }
 
@@ -188,6 +273,16 @@ function update(userId, itemId, changes = {}) {
         );
     }
 
+    if (changes.importance !== undefined) {
+        item.importance = Math.max(
+            0,
+            Math.min(
+                1,
+                Number(changes.importance) || 0
+            )
+        );
+    }
+
     if (changes.status !== undefined) {
         item.status =
             changes.status === "superseded"
@@ -195,7 +290,50 @@ function update(userId, itemId, changes = {}) {
                 : "active";
     }
 
-    item.updatedAt = new Date().toISOString();
+    if (changes.history !== undefined) {
+        item.history = Array.isArray(
+            changes.history
+        )
+            ? changes.history.slice(-20)
+            : [];
+    }
+
+    if (changes.tags !== undefined) {
+        item.tags = Array.isArray(
+            changes.tags
+        )
+            ? changes.tags
+                .map(x => cleanText(x, 40))
+                .filter(Boolean)
+                .slice(0, 20)
+            : [];
+    }
+
+    if (changes.projectId !== undefined) {
+        item.projectId = cleanText(
+            changes.projectId,
+            120
+        );
+    }
+
+    if (
+        changes.relatedMemoryIds !== undefined
+    ) {
+        item.relatedMemoryIds =
+            Array.isArray(
+                changes.relatedMemoryIds
+            )
+                ? changes.relatedMemoryIds
+                    .map(String)
+                    .slice(0, 30)
+                : [];
+    }
+
+    item.updatedAt =
+        new Date().toISOString();
+
+    brain.updatedAt =
+        item.updatedAt;
 
     save(data);
 
@@ -206,15 +344,25 @@ function remove(userId, itemId) {
     const data = load();
     const brain = getUserBrain(data, userId);
 
-    const before = brain.items.length;
+    const before =
+        brain.items.length;
 
-    brain.items = brain.items.filter(
-        x => String(x.id) !== String(itemId)
-    );
+    brain.items =
+        brain.items.filter(
+            x =>
+                String(x.id) !==
+                String(itemId)
+        );
 
-    if (brain.items.length === before) {
+    if (
+        brain.items.length ===
+        before
+    ) {
         return false;
     }
+
+    brain.updatedAt =
+        new Date().toISOString();
 
     save(data);
 
@@ -223,44 +371,140 @@ function remove(userId, itemId) {
 
 function list(userId, options = {}) {
     const data = load();
-    const brain = getUserBrain(data, userId);
+    const brain = getUserBrain(
+        data,
+        userId
+    );
 
-    let items = brain.items.slice();
+    let items =
+        brain.items.slice();
 
-    if (options.activeOnly !== false) {
-        items = items.filter(
-            x => x.status !== "superseded"
-        );
+    if (
+        options.activeOnly !== false
+    ) {
+        items =
+            items.filter(
+                x =>
+                    x.status ===
+                    "active"
+            );
     }
 
-    if (options.category) {
-        items = items.filter(
-            x =>
-                x.category ===
-                String(options.category)
-        );
+    if (
+        options.status
+    ) {
+        items =
+            items.filter(
+                x =>
+                    x.status ===
+                    String(
+                        options.status
+                    )
+            );
+    }
+
+    if (
+        options.category
+    ) {
+        items =
+            items.filter(
+                x =>
+                    x.category ===
+                    String(
+                        options.category
+                    )
+            );
+    }
+
+    if (
+        options.key
+    ) {
+        items =
+            items.filter(
+                x =>
+                    x.key ===
+                    String(
+                        options.key
+                    )
+            );
     }
 
     return items;
 }
 
 function get(userId, itemId) {
-    const items = list(userId, {
-        activeOnly: false
-    });
+    const items =
+        list(userId, {
+            activeOnly: false
+        });
 
     return (
         items.find(
-            x => String(x.id) === String(itemId)
+            x =>
+                String(x.id) ===
+                String(itemId)
         ) || null
     );
 }
 
-function setEnabled(userId, enabled) {
+function markUsed(userId, ids = []) {
     const data = load();
-    const brain = getUserBrain(data, userId);
+    const brain =
+        getUserBrain(
+            data,
+            userId
+        );
 
-    brain.enabled = Boolean(enabled);
+    const now =
+        new Date().toISOString();
+
+    const wanted =
+        new Set(
+            ids.map(String)
+        );
+
+    let changed = false;
+
+    for (const item of brain.items) {
+        if (
+            wanted.has(
+                String(item.id)
+            )
+        ) {
+            item.lastUsedAt = now;
+            item.updatedAt = now;
+            item.usageCount =
+                Number(
+                    item.usageCount
+                ) + 1;
+
+            changed = true;
+        }
+    }
+
+    if (changed) {
+        brain.updatedAt = now;
+        save(data);
+    }
+}
+
+function setEnabled(
+    userId,
+    enabled
+) {
+    const data = load();
+
+    const brain =
+        getUserBrain(
+            data,
+            userId
+        );
+
+    brain.enabled =
+        Boolean(enabled);
+
+    brain.updatedAt =
+        new Date().toISOString();
 
     save(data);
 
@@ -269,54 +513,171 @@ function setEnabled(userId, enabled) {
 
 function getEnabled(userId) {
     const data = load();
-    const brain = getUserBrain(data, userId);
+
+    const brain =
+        getUserBrain(
+            data,
+            userId
+        );
 
     return brain.enabled !== false;
 }
 
-function markUsed(userId, ids = []) {
-    if (!Array.isArray(ids) || !ids.length) {
-        return;
-    }
-
+function addEvent(
+    userId,
+    event = {}
+) {
     const data = load();
-    const brain = getUserBrain(data, userId);
 
-    const now = new Date().toISOString();
+    const brain =
+        getUserBrain(
+            data,
+            userId
+        );
 
-    for (const item of brain.items) {
-        if (ids.includes(String(item.id))) {
-            item.lastUsedAt = now;
-        }
+    const now =
+        new Date().toISOString();
+
+    const newEvent = {
+        id: createId("event"),
+
+        type: cleanText(
+            event.type ||
+                "conversation",
+            60
+        ),
+
+        text: cleanText(
+            event.text,
+            1500
+        ),
+
+        conversationId:
+            cleanText(
+                event.conversationId ||
+                    "",
+                160
+            ),
+
+        createdAt: now,
+
+        importance:
+            typeof event.importance ===
+            "number"
+                ? Math.max(
+                    0,
+                    Math.min(
+                        1,
+                        event.importance
+                    )
+                )
+                : 0.5
+    };
+
+    if (!newEvent.text) {
+        return null;
     }
+
+    brain.events.unshift(
+        newEvent
+    );
+
+    brain.events =
+        brain.events.slice(
+            0,
+            300
+        );
+
+    brain.updatedAt = now;
 
     save(data);
+
+    return newEvent;
+}
+
+function getEvents(
+    userId,
+    limit = 50
+) {
+    const data = load();
+
+    const brain =
+        getUserBrain(
+            data,
+            userId
+        );
+
+    return brain.events
+        .slice(
+            0,
+            Math.max(
+                1,
+                Math.min(
+                    300,
+                    Number(limit) ||
+                        50
+                )
+            )
+        );
 }
 
 function getStats(userId) {
     const data = load();
-    const brain = getUserBrain(data, userId);
 
-    const active = brain.items.filter(
-        x => x.status !== "superseded"
-    );
+    const brain =
+        getUserBrain(
+            data,
+            userId
+        );
+
+    const active =
+        brain.items.filter(
+            x =>
+                x.status ===
+                "active"
+        );
 
     const categories = {};
 
     for (const item of active) {
         const category =
-            item.category || "general";
+            item.category ||
+            "general";
 
         categories[category] =
-            (categories[category] || 0) + 1;
+            (categories[category] ||
+                0) + 1;
     }
 
     return {
-        enabled: brain.enabled !== false,
-        total: brain.items.length,
-        active: active.length,
+        enabled:
+            brain.enabled !== false,
+
+        version:
+            brain.version || 2,
+
+        total:
+            brain.items.length,
+
+        active:
+            active.length,
+
         superseded:
-            brain.items.length - active.length,
+            brain.items.filter(
+                x =>
+                    x.status ===
+                    "superseded"
+            ).length,
+
+        events:
+            brain.events.length,
+
+        projects:
+            brain.projects.length,
+
+        goals:
+            brain.goals.length,
+
         categories
     };
 }
@@ -330,8 +691,10 @@ module.exports = {
     remove,
     list,
     get,
+    markUsed,
     setEnabled,
     getEnabled,
-    markUsed,
+    addEvent,
+    getEvents,
     getStats
 };

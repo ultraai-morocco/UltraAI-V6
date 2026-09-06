@@ -3,78 +3,56 @@ const router = express.Router();
 
 const auth = require("../auth");
 const store = require("../brain/brain-store");
-const retriever = require("../brain/brain-retriever");
+const intelligence = require("../brain/brain-intelligence");
 
 function getUser(req) {
-    const authorization =
-        req.headers.authorization || "";
+    const header = req.headers.authorization || "";
 
-    if (!authorization.startsWith("Bearer ")) {
+    if (!header.startsWith("Bearer ")) {
         return null;
     }
 
-    const token =
-        authorization.slice(7).trim();
-
-    if (!token) {
+    try {
+        return auth.verifyToken(header.slice(7).trim());
+    } catch {
         return null;
     }
-
-    return auth.verifyToken(token);
 }
 
-function requireUser(req, res) {
+function requireUser(req, res, next) {
     const user = getUser(req);
 
     if (!user) {
-        res.status(401).json({
+        return res.status(401).json({
             success: false,
             error: "Unauthorized"
         });
-
-        return null;
     }
 
-    return user;
+    req.brainUser = user;
+    next();
 }
 
-/*
-GET /brain
+/* GET /brain */
+router.get("/", requireUser, (req, res) => {
+    const userId = String(req.brainUser.id);
 
-Returns the user's complete Brain.
-*/
-router.get("/", (req, res) => {
-    const user = requireUser(req, res);
-
-    if (!user) return;
-
-    const items = store.list(user.id, {
-        activeOnly: false
+    const items = store.list(userId, {
+        activeOnly: req.query.all !== "true"
     });
-
-    const stats = store.getStats(user.id);
 
     res.json({
         success: true,
-        enabled: stats.enabled,
-        stats,
-        items
+        version: 2,
+        enabled: store.getEnabled(userId),
+        items,
+        stats: store.getStats(userId)
     });
 });
 
-/*
-GET /brain/search?q=...
-
-Search/retrieve relevant memories.
-*/
-router.get("/search", (req, res) => {
-    const user = requireUser(req, res);
-
-    if (!user) return;
-
-    const q = String(
-        req.query.q || ""
-    ).trim();
+/* GET /brain/search?q= */
+router.get("/search", requireUser, (req, res) => {
+    const q = String(req.query.q || "").trim();
 
     if (!q) {
         return res.json({
@@ -83,13 +61,10 @@ router.get("/search", (req, res) => {
         });
     }
 
-    const items = retriever.retrieve(
-        user.id,
+    const items = intelligence.findRelated(
+        String(req.brainUser.id),
         q,
-        {
-            limit: 20,
-            maxChars: 10000
-        }
+        25
     );
 
     res.json({
@@ -99,62 +74,75 @@ router.get("/search", (req, res) => {
     });
 });
 
-/*
-GET /brain/stats
-*/
-router.get("/stats", (req, res) => {
-    const user = requireUser(req, res);
+/* GET /brain/context?q= */
+router.get("/context", requireUser, (req, res) => {
+    const q = String(req.query.q || "").trim();
 
-    if (!user) return;
+    if (!q) {
+        return res.json({
+            success: true,
+            memories: [],
+            count: 0
+        });
+    }
+
+    const context = intelligence.getContext(
+        String(req.brainUser.id),
+        q,
+        { limit: 20 }
+    );
 
     res.json({
         success: true,
-        stats: store.getStats(user.id)
+        ...context
     });
 });
 
-/*
-POST /brain
+/* GET /brain/stats */
+router.get("/stats", requireUser, (req, res) => {
+    res.json({
+        success: true,
+        stats: store.getStats(
+            String(req.brainUser.id)
+        )
+    });
+});
 
-Manual memory.
-*/
-router.post("/", (req, res) => {
-    const user = requireUser(req, res);
+/* GET /brain/events */
+router.get("/events", requireUser, (req, res) => {
+    const limit = Number(req.query.limit) || 50;
 
-    if (!user) return;
+    res.json({
+        success: true,
+        events: store.getEvents(
+            String(req.brainUser.id),
+            limit
+        )
+    });
+});
 
-    const text = String(
-        req.body?.text || ""
-    ).trim();
+/* POST /brain */
+router.post("/", requireUser, (req, res) => {
+    const body = req.body || {};
 
-    if (!text) {
+    if (!String(body.text || "").trim()) {
         return res.status(400).json({
             success: false,
             error: "Memory text is required"
         });
     }
 
-    if (text.length > 1000) {
-        return res.status(400).json({
-            success: false,
-            error: "Memory is too long"
-        });
-    }
-
     const item = store.add(
-        user.id,
+        String(req.brainUser.id),
         {
-            key: req.body?.key || "",
-            text,
-            category:
-                req.body?.category ||
-                "general",
+            key: body.key || "general",
+            text: body.text,
+            category: body.category || "general",
             source: "manual",
-            confidence:
-                typeof req.body?.confidence ===
-                "number"
-                    ? req.body.confidence
-                    : 0.9
+            confidence: body.confidence,
+            importance: body.importance,
+            tags: body.tags,
+            projectId: body.projectId
         }
     );
 
@@ -164,25 +152,111 @@ router.post("/", (req, res) => {
     });
 });
 
-/*
-PATCH /brain/:id
-*/
-router.patch("/:id", (req, res) => {
-    const user = requireUser(req, res);
+/* PATCH /brain/:id */
+router.patch("/:id", requireUser, (req, res) => {
+    const userId = String(req.brainUser.id);
+    const id = String(req.params.id);
 
-    if (!user) return;
+    const existing = store.get(userId, id);
+
+    if (!existing) {
+        return res.status(404).json({
+            success: false,
+            error: "Memory not found"
+        });
+    }
+
+    const allowed = [
+        "text",
+        "key",
+        "category",
+        "confidence",
+        "importance",
+        "status",
+        "tags",
+        "projectId",
+        "relatedMemoryIds"
+    ];
+
+    const changes = {};
+
+    for (const key of allowed) {
+        if (
+            req.body &&
+            req.body[key] !== undefined
+        ) {
+            changes[key] = req.body[key];
+        }
+    }
 
     const item = store.update(
-        user.id,
-        req.params.id,
-        {
-            key: req.body?.key,
-            text: req.body?.text,
-            category: req.body?.category,
-            confidence:
-                req.body?.confidence,
-            status: req.body?.status
-        }
+        userId,
+        id,
+        changes
+    );
+
+    res.json({
+        success: true,
+        item
+    });
+});
+
+/* DELETE /brain/:id */
+router.delete("/:id", requireUser, (req, res) => {
+    const ok = store.remove(
+        String(req.brainUser.id),
+        String(req.params.id)
+    );
+
+    if (!ok) {
+        return res.status(404).json({
+            success: false,
+            error: "Memory not found"
+        });
+    }
+
+    res.json({
+        success: true
+    });
+});
+
+/* POST /brain/events */
+router.post("/events", requireUser, (req, res) => {
+    const event = store.addEvent(
+        String(req.brainUser.id),
+        req.body || {}
+    );
+
+    res.json({
+        success: true,
+        event
+    });
+});
+
+/* POST /brain/connect */
+router.post("/connect", requireUser, (req, res) => {
+    const memoryId = String(
+        req.body?.memoryId || ""
+    );
+
+    const relatedIds = Array.isArray(
+        req.body?.relatedIds
+    )
+        ? req.body.relatedIds
+        : [];
+
+    if (!memoryId || !relatedIds.length) {
+        return res.status(400).json({
+            success: false,
+            error:
+                "memoryId and relatedIds are required"
+        });
+    }
+
+    const item = intelligence.connectMemory(
+        String(req.brainUser.id),
+        memoryId,
+        relatedIds
     );
 
     if (!item) {
@@ -198,52 +272,19 @@ router.patch("/:id", (req, res) => {
     });
 });
 
-/*
-DELETE /brain/:id
-*/
-router.delete("/:id", (req, res) => {
-    const user = requireUser(req, res);
-
-    if (!user) return;
-
-    const deleted = store.remove(
-        user.id,
-        req.params.id
-    );
-
-    if (!deleted) {
-        return res.status(404).json({
-            success: false,
-            error: "Memory not found"
-        });
-    }
-
-    res.json({
-        success: true
-    });
-});
-
-/*
-PATCH /brain/settings/enabled
-*/
+/* PATCH /brain/settings/enabled */
 router.patch(
     "/settings/enabled",
+    requireUser,
     (req, res) => {
-        const user = requireUser(req, res);
-
-        if (!user) return;
-
-        const enabled =
-            req.body?.enabled === true;
-
-        store.setEnabled(
-            user.id,
-            enabled
+        const value = store.setEnabled(
+            String(req.brainUser.id),
+            Boolean(req.body?.enabled)
         );
 
         res.json({
             success: true,
-            enabled
+            enabled: value
         });
     }
 );

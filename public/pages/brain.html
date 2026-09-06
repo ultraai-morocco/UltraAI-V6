@@ -1,0 +1,296 @@
+<div class="brain-page">
+
+    <div class="brain-header">
+        <div>
+            <div class="brain-title">🧠 UltraAI Brain</div>
+            <div class="brain-subtitle">
+                الذاكرة الشخصية المشتركة لـ UltraAI
+            </div>
+        </div>
+
+        <label class="brain-switch">
+            <input
+                type="checkbox"
+                id="brainEnabled"
+                checked
+            >
+            <span></span>
+        </label>
+    </div>
+
+    <div class="brain-stats" id="brainStats">
+        <div class="brain-stat">
+            <strong id="statTotal">0</strong>
+            <span>الذكريات</span>
+        </div>
+
+        <div class="brain-stat">
+            <strong id="statProjects">0</strong>
+            <span>المشاريع</span>
+        </div>
+
+        <div class="brain-stat">
+            <strong id="statGoals">0</strong>
+            <span>الأهداف</span>
+        </div>
+
+        <div class="brain-stat">
+            <strong id="statEvents">0</strong>
+            <span>التعلّم</span>
+        </div>
+    </div>
+
+    <div class="brain-search">
+        <input
+            id="brainSearch"
+            type="text"
+            placeholder="🔎 قلب فذاكرتك..."
+            autocomplete="off"
+        >
+    </div>
+
+    <div class="brain-tabs">
+        <button
+            class="brain-tab active"
+            data-tab="memories"
+        >
+            🧠 الذكريات
+        </button>
+
+        <button
+            class="brain-tab"
+            data-tab="projects"
+        >
+            🚀 المشاريع
+        </button>
+
+        <button
+            class="brain-tab"
+            data-tab="goals"
+        >
+            🎯 الأهداف
+        </button>
+
+        <button
+            class="brain-tab"
+            data-tab="events"
+        >
+            📚 التعلّم
+        </button>
+    </div>
+
+    <div id="brainContent">
+        <div class="brain-loading">
+            🧠 كنحمّل Brain...
+        </div>
+    </div>
+
+    <div class="brain-add">
+        <button id="brainAddBtn">
+            ＋ إضافة ذاكرة
+        </button>
+    </div>
+
+</div>
+
+<style>
+.brain-page {
+    width: 100%;
+    max-width: 1000px;
+    margin: auto;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.brain-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+    margin-bottom: 20px;
+}
+
+.brain-title {
+    font-size: 28px;
+    font-weight: 800;
+}
+
+.brain-subtitle {
+    opacity: .65;
+    margin-top: 5px;
+}
+
+.brain-switch input {
+    display: none;
+}
+
+.brain-switch span {
+    display: block;
+    width: 52px;
+    height: 28px;
+    border-radius: 30px;
+    background: #777;
+    position: relative;
+    cursor: pointer;
+}
+
+.brain-switch span:after {
+    content: "";
+    position: absolute;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: white;
+    top: 3px;
+    left: 4px;
+    transition: .2s;
+}
+
+.brain-switch input:checked + span {
+    background: #16a34a;
+}
+
+.brain-switch input:checked + span:after {
+    transform: translateX(22px);
+}
+
+.brain-stats {
+    display: grid;
+    grid-template-columns:
+        repeat(4, 1fr);
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.brain-stat {
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--card-bg, rgba(127,127,127,.1));
+    text-align: center;
+}
+
+.brain-stat strong {
+    display: block;
+    font-size: 25px;
+}
+
+.brain-stat span {
+    opacity: .65;
+    font-size: 13px;
+}
+
+.brain-search input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 14px 16px;
+    border-radius: 14px;
+    border: 1px solid rgba(127,127,127,.25);
+    background: transparent;
+    color: inherit;
+    outline: none;
+    font-size: 15px;
+    margin-bottom: 15px;
+}
+
+.brain-tabs {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-bottom: 15px;
+}
+
+.brain-tab {
+    border: 0;
+    padding: 10px 14px;
+    border-radius: 12px;
+    background: rgba(127,127,127,.1);
+    color: inherit;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.brain-tab.active {
+    background: rgba(127,127,127,.25);
+    font-weight: 700;
+}
+
+.brain-card {
+    padding: 16px;
+    border-radius: 16px;
+    background: var(--card-bg, rgba(127,127,127,.1));
+    margin-bottom: 10px;
+}
+
+.brain-card-top {
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.brain-category {
+    font-size: 12px;
+    opacity: .6;
+}
+
+.brain-text {
+    margin-top: 8px;
+    line-height: 1.7;
+}
+
+.brain-meta {
+    margin-top: 10px;
+    font-size: 11px;
+    opacity: .5;
+}
+
+.brain-actions {
+    display: flex;
+    gap: 6px;
+}
+
+.brain-actions button {
+    border: 0;
+    background: rgba(127,127,127,.15);
+    color: inherit;
+    border-radius: 9px;
+    padding: 6px 9px;
+    cursor: pointer;
+}
+
+.brain-empty,
+.brain-loading {
+    padding: 40px 20px;
+    text-align: center;
+    opacity: .6;
+}
+
+.brain-add {
+    margin-top: 15px;
+}
+
+#brainAddBtn {
+    width: 100%;
+    padding: 14px;
+    border: 0;
+    border-radius: 14px;
+    cursor: pointer;
+    background: rgba(127,127,127,.15);
+    color: inherit;
+    font-weight: 700;
+}
+
+@media (max-width: 600px) {
+    .brain-page {
+        padding: 12px;
+    }
+
+    .brain-stats {
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .brain-title {
+        font-size: 23px;
+    }
+}
+</style>
