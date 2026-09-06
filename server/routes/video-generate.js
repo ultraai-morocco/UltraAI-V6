@@ -44,6 +44,10 @@ async function uploadImage(imagePath) {
     throw new Error("فشل رفع الصورة إلى Wan Space");
   }
 
+  console.log("========== WAN UPLOAD PATH ==========");
+  console.log(result[0]);
+  console.log("=====================================");
+
   return result[0];
 }
 
@@ -52,7 +56,7 @@ async function generateVideo(imageFile, prompt) {
 
   const imageData = {
     path: uploadedPath,
-    orig_name: path.basename(imageFile),
+    orig_name: "test-image.png",
     mime_type: "image/png"
   };
 
@@ -67,18 +71,18 @@ async function generateVideo(imageFile, prompt) {
       1,
       1,
       42,
-      false,
+      true,
       6,
       "UniPCMultistep",
-      3,
+      3.0,
       16,
       true,
-      false
+      true
     ]
   };
 
   const { stdout } = await execFileAsync("curl", [
-    "-s",
+    "-sS",
     "-X", "POST",
     `${HF_SPACE}/gradio_api/call/generate_video`,
     "-H", "Content-Type: application/json",
@@ -97,7 +101,7 @@ async function generateVideo(imageFile, prompt) {
 
   const { stdout: resultText } = await execFileAsync("curl", [
     "-N",
-    "-s",
+    "-sS",
     `${HF_SPACE}/gradio_api/call/generate_video/${event.event_id}`
   ]);
 
@@ -105,30 +109,54 @@ async function generateVideo(imageFile, prompt) {
   console.log(resultText);
   console.log("====================================");
 
-  const urlMarker =
-    'https://kulkas2pintu-wan555.hf.space/gradio_api/file=';
+  const completeMatch = resultText.match(
+    /event:\s*complete\s*[\r\n]+data:\s*(.+?)(?=\r?\nevent:|$)/s
+  );
 
-  const urlStart = resultText.indexOf(urlMarker);
+  if (!completeMatch) {
+    const errorMatch = resultText.match(
+      /event:\s*error\s*[\r\n]+data:\s*(.+?)(?=\r?\nevent:|$)/s
+    );
 
-  console.log("========== WAN SSE RESULT ==========");
-  console.log(resultText);
-  console.log("====================================");
+    if (errorMatch) {
+      throw new Error(
+        "Wan أعاد خطأ أثناء توليد الفيديو: " +
+        errorMatch[1].trim()
+      );
+    }
 
-  if (urlStart === -1) {
     throw new Error(
-      "Wan لم يرجع رابط الفيديو:\n" + resultText.slice(0, 2000)
+      "Wan لم يرجع نتيجة مكتملة:\n" +
+      resultText.slice(0, 3000)
     );
   }
 
-  const urlEnd = resultText.indexOf('"', urlStart);
+  let result;
 
-  if (urlEnd === -1) {
-    throw new Error("رابط الفيديو غير مكتمل");
+  try {
+    result = JSON.parse(completeMatch[1].trim());
+  } catch (e) {
+    throw new Error(
+      "تعذر قراءة نتيجة Wan:\n" +
+      completeMatch[1].slice(0, 3000)
+    );
   }
 
-  const videoUrl = resultText.slice(urlStart, urlEnd);
+  const videoUrl =
+    result?.[0]?.video?.url ||
+    result?.[1]?.url ||
+    null;
 
-  return videoUrl.replace(/\\u0026/g, "&");
+  if (!videoUrl) {
+    throw new Error(
+      "Wan أكمل التوليد ولكن لم يرجع رابط الفيديو:\n" +
+      JSON.stringify(result).slice(0, 3000)
+    );
+  }
+
+  console.log("✅ WAN VIDEO URL:", videoUrl);
+
+  return videoUrl;
 }
 
 router.post("/", async (req, res) => {

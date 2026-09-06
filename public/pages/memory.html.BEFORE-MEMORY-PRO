@@ -1,0 +1,29 @@
+<div class="page memory-page">
+
+    <div id="memoryHeader"></div>
+
+    <div class="memory-tools">
+
+        <input
+            id="memorySearch"
+            type="search"
+            placeholder="🔎 ابحث في المحادثات..."
+            oninput="filterMemory()">
+
+        <button
+            type="button"
+            onclick="loadMemory()">
+            🔄 تحديث
+        </button>
+
+    </div>
+
+    <div id="memoryList" class="memory-list">
+
+        <div class="memory-loading">
+            جاري تحميل المحادثات...
+        </div>
+
+    </div>
+
+</div>

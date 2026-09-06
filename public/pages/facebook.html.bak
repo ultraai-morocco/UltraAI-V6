@@ -1,0 +1,17 @@
+<div class="welcome">
+
+    <h1>📘 Facebook</h1>
+
+    <p>
+        ربط صفحة Facebook مع UltraAI
+    </p>
+
+    <div id="facebookStatus">
+        جاري التحقق من حالة Facebook...
+    </div>
+
+    <div id="facebookActions"
+         style="margin-top:20px;">
+    </div>
+
+</div>

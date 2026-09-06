@@ -56,6 +56,7 @@ app.use(express.json({limit:"6mb"}));
 app.use("/paddle/config", require("./routes/paddle-config"));
 app.use("/paddle/webhook", require("./routes/paddle-webhook"));
 app.use("/youtube", require("./routes/youtube-oauth"));
+app.use("/facebook", require("./routes/facebook-oauth"));
 app.use("/youtube-auto", require("./routes/youtube-auto"));
 require("./youtube-auto-runner").start();
 
@@ -410,6 +411,7 @@ app.use("/admin-broadcast", require("./routes/admin-broadcast"));
 app.use("/admin-inbox", require("./routes/admin-inbox"));
 
 app.use("/conversations", require("./routes/conversations"));
+app.use("/memory-pro", require("./routes/memory-pro"));
 app.use("/conversations-list", require("./routes/conversations-list"));
 app.use("/delete-conversation", require("./routes/delete-conversation"));
 app.use("/privacy", require("./routes/privacy"));

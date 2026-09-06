@@ -1,0 +1,7 @@
+{
+  "deploy": {
+    "org": "ultraai-morocco",
+    "app": "ultraai-v6"
+  }
+}
+

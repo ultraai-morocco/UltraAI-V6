@@ -1,0 +1,49 @@
+<div class="welcome">
+
+    <h1>📘 Facebook</h1>
+
+    <p>
+        ربط صفحة Facebook مع UltraAI
+    </p>
+
+    <div id="facebookStatus">
+        جاري التحقق من حالة Facebook...
+    </div>
+
+    <div id="facebookActions"
+         style="margin-top:20px;">
+    </div>
+
+    <div id="facebookPublish"
+         style="margin-top:30px; display:none;">
+
+        <h3>🚀 نشر تجريبي</h3>
+
+        <textarea
+            id="facebookMessage"
+            placeholder="كتب المنشور هنا..."
+            rows="5"
+            style="width:100%; box-sizing:border-box; padding:12px; margin:10px 0;"></textarea>
+
+        <input
+            id="facebookImageUrl"
+            type="url"
+            placeholder="رابط الصورة HTTPS (اختياري)"
+            style="width:100%; box-sizing:border-box; padding:12px; margin:10px 0;"
+        >
+
+        <button
+            type="button"
+            onclick="publishFacebookPost()"
+            style="margin-top:10px;">
+            🚀 نشر تجريبي
+        </button>
+
+        <div
+            id="facebookPublishResult"
+            style="margin-top:15px;">
+        </div>
+
+    </div>
+
+</div>

@@ -1,0 +1,83 @@
+<div class="auto-content-page">
+
+    <section class="auto-content-premium">
+
+        <div>
+            <strong>👑 UltraAI Premium</strong>
+            <p>
+                فتح ميزات TikTok المتقدمة والمحتوى الاحترافي.
+            </p>
+        </div>
+
+        <button
+            type="button"
+            id="paddlePremiumButton"
+            onclick="startPaddlePremium()">
+            🚀 اشترك الآن — $4.99 / شهر
+        </button>
+
+        <small>
+            تجربة مجانية لمدة 7 أيام
+        </small>
+
+    </section>
+
+
+
+    <div class="auto-content-hero">
+        <div class="auto-content-icon">🎬</div>
+        <h1>محتوى TikTok تلقائي</h1>
+        <p>حوّل أي نيش إلى محتوى صباحي ومسائي جاهز</p>
+    </div>
+
+    <section class="auto-content-card">
+
+        <label>🎯 النيش</label>
+
+        <input
+            id="autoNiche"
+            class="auto-content-input"
+            type="text"
+            maxlength="200"
+            placeholder="مثلاً: تربية النحل، الطبخ، التقنية..."
+        >
+
+        <label>👥 الجمهور المستهدف</label>
+
+        <input
+            id="autoAudience"
+            class="auto-content-input"
+            type="text"
+            maxlength="200"
+            placeholder="مثلاً: المبتدئون، الشباب، أصحاب المشاريع..."
+        >
+
+        <label>🌍 اللغة</label>
+
+        <select
+            id="autoLanguage"
+            class="auto-content-input"
+        >
+            <option value="ar">العربية</option>
+            <option value="fr">Français</option>
+            <option value="en">English</option>
+        </select>
+
+        <button
+            type="button"
+            class="auto-content-generate-btn"
+            onclick="generateAutoContent()"
+        >
+            ✨ توليد محتوى صباحي ومسائي
+        </button>
+
+    </section>
+
+    <section
+        id="autoContentResult"
+        class="auto-content-results"
+        style="display:none;"
+    ></section>
+
+</div>
+
