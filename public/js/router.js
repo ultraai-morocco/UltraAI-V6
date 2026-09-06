@@ -182,6 +182,68 @@ async function loadPage(page) {
 
         }
 
+        /* FACEBOOK */
+
+        if (page === "facebook") {
+
+            const oldFacebookScript =
+                document.getElementById("facebookScript");
+
+            if (oldFacebookScript) {
+                oldFacebookScript.remove();
+            }
+
+            await new Promise((resolve, reject) => {
+
+                const script =
+                    document.createElement("script");
+
+                script.id =
+                    "facebookScript";
+
+                script.src =
+                    "/js/facebook.js?v=20260904";
+
+                script.onload = () => {
+
+                    console.log(
+                        "✅ Facebook JS loaded"
+                    );
+
+                    if (
+                        typeof window.loadFacebookStatus ===
+                        "function"
+                    ) {
+                        window.loadFacebookStatus();
+                    }
+
+                    resolve();
+
+                };
+
+                script.onerror = () => {
+
+                    console.error(
+                        "❌ Facebook JS failed"
+                    );
+
+                    reject(
+                        new Error(
+                            "Failed to load facebook.js"
+                        )
+                    );
+
+                };
+
+                document.body.appendChild(
+                    script
+                );
+
+            });
+
+        }
+
+
         /* YOUTUBE */
 
         if (page === "youtube") {
@@ -339,6 +401,11 @@ async function loadPage(page) {
 
             if (typeof loadMemory === "function") {
                 loadMemory();
+            }
+
+            if (typeof loadMemoryPro === "function") {
+                console.log("🧠 Loading Memory Pro...");
+                loadMemoryPro();
             }
 
         }

@@ -440,6 +440,132 @@ router.post("/", async (req,res)=>{
 
 
     /*
+     * MEMORY PRO
+     *
+     * نجيب الذاكرة الخاصة بهذا المستخدم فقط.
+     * Memory Pro كتدخل في system context قبل إرسال الطلب إلى Groq.
+     */
+
+    try {
+
+        const fs = require("fs");
+        const path = require("path");
+
+        const memoryFile =
+            path.join(
+                __dirname,
+                "../data/memory-pro.json"
+            );
+
+        if (fs.existsSync(memoryFile)) {
+
+            const memoryData =
+                JSON.parse(
+                    fs.readFileSync(
+                        memoryFile,
+                        "utf8"
+                    ) || "{}"
+                );
+
+            const userMemory =
+                memoryData[String(user.id)];
+
+            if (
+                userMemory &&
+                userMemory.enabled === true &&
+                Array.isArray(userMemory.items) &&
+                userMemory.items.length > 0
+            ) {
+
+                /*
+                 * نرسل عدد محدود من الذكريات
+                 * حتى ما يكبرش الطلب على Groq.
+                 */
+                const memoryItems =
+                    userMemory.items
+                        .slice(0, 30)
+                        .map(item => {
+
+                            const category =
+                                String(
+                                    item.category ||
+                                    "general"
+                                ).trim();
+
+                            const text =
+                                String(
+                                    item.text || ""
+                                ).trim();
+
+                            if (!text) return "";
+
+                            return (
+                                "- [" +
+                                category +
+                                "] " +
+                                text
+                            );
+
+                        })
+                        .filter(Boolean);
+
+                if (memoryItems.length > 0) {
+
+                    messages[0].content += `
+
+ULTRAAI MEMORY PRO:
+
+هذه معلومات مهمة حفظها المستخدم عن نفسه أو عن مشاريعه.
+استعملها عندما تكون مرتبطة مباشرة بالسؤال الحالي.
+
+القواعد:
+- هذه المعلومات تخص هذا المستخدم فقط.
+- لا تخترع معلومات غير موجودة فيها.
+- لا تعتبر كل معلومة مرتبطة بكل سؤال.
+- استعمل الذاكرة فقط عندما تساعد فعلاً في الإجابة.
+- إذا تعارضت معلومة محفوظة مع معلومات أحدث صرح بها المستخدم داخل المحادثة الحالية، أعط الأولوية للمعلومة الأحدث.
+- لا تخبر المستخدم بمحتوى الذاكرة إلا إذا كان ذلك مناسباً للسياق أو سأل عنها.
+- لا تذكر "Memory Pro" أو النظام الداخلي إلا إذا سأل المستخدم عنه.
+
+المعلومات المحفوظة:
+
+${memoryItems.join("\n")}
+`;
+
+                    console.log(
+                        "🧠 MEMORY PRO: loaded",
+                        memoryItems.length,
+                        "items for user",
+                        user.id
+                    );
+
+                }
+
+            } else {
+
+                console.log(
+                    "🧠 MEMORY PRO: disabled or empty for user",
+                    user.id
+                );
+
+            }
+
+        }
+
+    } catch (error) {
+
+        /*
+         * Memory Pro لا يجب أن تمنع Chat من العمل.
+         */
+        console.error(
+            "🧠 MEMORY PRO ERROR:",
+            error.message
+        );
+
+    }
+
+
+    /*
      * ULTRAAI PROFESSIONAL VISION
      */
 
